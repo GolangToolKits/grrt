@@ -1,3 +1,3 @@
-module github.com/Ulbora/grr
+module github.com/GolangToolKits/grrt
 
 go 1.19

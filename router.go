@@ -1,5 +1,9 @@
 package grrt
 
+// Copyright 2022 GolangToolKits Authors. All rights reserved.
+// Use of this source code is governed by the MIT License
+// that can be found in the LICENSE file.
+
 import "net/http"
 
 // Router Router
@@ -15,4 +19,4 @@ func NewRouter() Router {
 	return &rtn
 }
 
-// go mod init github.com/Ulbora/grr
+// go mod init github.com/GolangToolKits/grrt
