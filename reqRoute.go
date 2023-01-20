@@ -38,11 +38,9 @@ func (t *ReqRoute) HandlerFunc(f func(http.ResponseWriter, *http.Request)) Route
 
 // Path Path
 func (t *ReqRoute) Path(p string) Route {
-	//var rtn Route
 	if t.matcher.addPath(p) {
 		t.path = p
 		t.active = true
-		//rtn = t
 	}
 	return t
 }
