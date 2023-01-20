@@ -8,12 +8,19 @@ import "net/http"
 
 // ReqRoute ReqRoute
 type ReqRoute struct {
-	namedRoutes map[string]*Route
-	handler     http.Handler
-	host        string
-	path        string
-	matcher     Matcher
-	active      bool
+	//namedRoutes map[string]*Route
+	handler http.Handler
+	host    string
+	path    string
+	matcher Matcher
+	active  bool
+}
+
+// New New
+func (t *ReqRoute) New() Route {
+	var m pathMatcher
+	t.matcher = m.New()
+	return t
 }
 
 // Handler Handler
@@ -31,13 +38,13 @@ func (t *ReqRoute) HandlerFunc(f func(http.ResponseWriter, *http.Request)) Route
 
 // Path Path
 func (t *ReqRoute) Path(p string) Route {
-	var rtn Route
+	//var rtn Route
 	if t.matcher.addPath(p) {
 		t.path = p
 		t.active = true
-		rtn = t
+		//rtn = t
 	}
-	return rtn
+	return t
 }
 
 // Host Host
