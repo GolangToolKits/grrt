@@ -12,24 +12,29 @@ type ReqRoute struct {
 	handler     http.Handler
 	host        string
 	path        string
+	matcher     Matcher
+	active      bool
 }
 
 // Handler Handler
 func (t *ReqRoute) Handler(handler http.Handler) Route {
-	t.handler = handler
+	if t.active {
+		t.handler = handler
+	}
 	return t
 }
 
 // HandlerFunc HandlerFunc
 func (t *ReqRoute) HandlerFunc(f func(http.ResponseWriter, *http.Request)) Route {
-	t.handler = http.HandlerFunc(f)
-	return t
+	return t.Handler(http.HandlerFunc(f))
 }
 
 // Path Path
 func (t *ReqRoute) Path(p string) Route {
 	var rtn Route
-	if matchPath(p) {
+	if t.matcher.addPath(p) {
+		t.path = p
+		t.active = true
 		rtn = t
 	}
 	return rtn
@@ -38,4 +43,9 @@ func (t *ReqRoute) Path(p string) Route {
 // Host Host
 func (t *ReqRoute) Host(h string) Route {
 	return nil
+}
+
+// GetHandler GetHandler
+func (t *ReqRoute) GetHandler() http.Handler {
+	return t.handler
 }
