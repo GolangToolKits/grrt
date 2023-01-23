@@ -2,6 +2,7 @@ package grrt
 
 import (
 	"net/http"
+	"reflect"
 	"testing"
 )
 
@@ -240,6 +241,66 @@ func TestReqRoute_chechCurlyPlacement(t *testing.T) {
 			}
 			if got := tr.chechCurlyPlacement(tt.args.p); got != tt.want {
 				t.Errorf("ReqRoute.chechCurlyPlacement() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestReqRoute_extractPathVarNames(t *testing.T) {
+	type fields struct {
+		handler      http.Handler
+		host         string
+		path         string
+		matcher      Matcher
+		active       bool
+		pathVarsUsed bool
+		pathVarNames *[]string
+	}
+	type args struct {
+		p string
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   *[]string
+	}{
+		// TODO: Add test cases.
+		{
+			name: "test 1 one var success",
+			args: args{
+				p: "/route/test/{param1}",
+			},
+			want: &[]string{"param1"},
+		},
+		{
+			name: "test 2 two var success",
+			args: args{
+				p: "/route/test/{param1}/{param2}",
+			},
+			want: &[]string{"param1", "param2"},
+		},
+		{
+			name: "test 3 four var success",
+			args: args{
+				p: "/route/test/{param1}/{param2}/{param3}/{param4}",
+			},
+			want: &[]string{"param1", "param2", "param3", "param4"},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tr := &ReqRoute{
+				handler:      tt.fields.handler,
+				host:         tt.fields.host,
+				path:         tt.fields.path,
+				matcher:      tt.fields.matcher,
+				active:       tt.fields.active,
+				pathVarsUsed: tt.fields.pathVarsUsed,
+				pathVarNames: tt.fields.pathVarNames,
+			}
+			if got := tr.extractPathVarNames(tt.args.p); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("ReqRoute.extractPathVarNames() = %v, want %v", got, tt.want)
 			}
 		})
 	}

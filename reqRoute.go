@@ -18,6 +18,7 @@ type ReqRoute struct {
 	matcher      Matcher
 	active       bool
 	pathVarsUsed bool
+	pathVarNames *[]string
 }
 
 // New New
@@ -44,6 +45,7 @@ func (t *ReqRoute) HandlerFunc(f func(http.ResponseWriter, *http.Request)) Route
 func (t *ReqRoute) Path(p string) Route {
 	if t.chechPath(p) && t.matcher.addPath(p) {
 		t.path = p
+		t.pathVarNames = t.extractPathVarNames(p)
 		t.active = true
 	}
 	return t
@@ -138,6 +140,30 @@ func (t *ReqRoute) chechBackSlash(p string) bool {
 		}
 	}
 	return rtn
+}
+
+func (t *ReqRoute) extractPathVarNames(p string) *[]string {
+	var rtn []string
+	// rtn:= make([]string,1)
+	oc := rune('{')
+	cc := rune('}')
+	var ind1 int
+	var ind2 int
+	for i, c := range p {
+		if c == oc {
+			ind1 = i
+		}
+		if c == cc {
+			ind2 = i
+		}
+		if ind1 > 0 && ind1 < ind2 {
+			pvar := p[ind1+1 : ind2]
+			rtn = append(rtn, pvar)
+			ind1 = 0
+			ind2 = 0
+		}
+	}
+	return &rtn
 }
 
 func (t *ReqRoute) printError(p string, cause string) {
