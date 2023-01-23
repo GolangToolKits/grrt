@@ -31,6 +31,13 @@ func TestReqRoute_chechPath(t *testing.T) {
 			},
 			want: true,
 		},
+		{
+			name: "url match fail",
+			args: args{
+				p: "/test/route//{parm1}/{parm2}",
+			},
+			want: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -174,6 +181,65 @@ func TestReqRoute_chechBackSlash(t *testing.T) {
 			}
 			if got := tr.chechBackSlash(tt.args.p); got != tt.want {
 				t.Errorf("ReqRoute.chechBackSlash() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestReqRoute_chechCurlyPlacement(t *testing.T) {
+	type fields struct {
+		handler      http.Handler
+		host         string
+		path         string
+		matcher      Matcher
+		active       bool
+		pathVarsUsed bool
+	}
+	type args struct {
+		p string
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   bool
+	}{
+		// TODO: Add test cases.
+
+		{
+			name: "test 1 ok",
+			args: args{
+				p: "/route/test/{parm1}",
+			},
+			want: true,
+		},
+		{
+			name: "test 2 fail",
+			args: args{
+				p: "/route/test/{{parm1}",
+			},
+			want: false,
+		},
+		{
+			name: "test 3 fail",
+			args: args{
+				p: "/route/test/{parm1}}",
+			},
+			want: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tr := &ReqRoute{
+				handler:      tt.fields.handler,
+				host:         tt.fields.host,
+				path:         tt.fields.path,
+				matcher:      tt.fields.matcher,
+				active:       tt.fields.active,
+				pathVarsUsed: tt.fields.pathVarsUsed,
+			}
+			if got := tr.chechCurlyPlacement(tt.args.p); got != tt.want {
+				t.Errorf("ReqRoute.chechCurlyPlacement() = %v, want %v", got, tt.want)
 			}
 		})
 	}

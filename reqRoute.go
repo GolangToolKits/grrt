@@ -61,7 +61,7 @@ func (t *ReqRoute) GetHandler() http.Handler {
 
 func (t *ReqRoute) chechPath(p string) bool {
 	var rtn = false
-	if t.chechCurlys(p) && t.chechBackSlash(p) {
+	if t.chechCurlys(p) && t.chechBackSlash(p) && t.chechCurlyPlacement(p) {
 		rtn = true
 	} else {
 		t.printError(p, "Problem with path")
@@ -89,6 +89,32 @@ func (t *ReqRoute) chechCurlys(p string) bool {
 	return rtn
 }
 
+func (t *ReqRoute) chechCurlyPlacement(p string) bool {
+	//checks to make sure there are no {{ of }}
+	var rtn = true
+	oc := rune('{')
+	cc := rune('}')
+	var lastOc int = 0
+	var lastCc int = 0
+	for i, c := range p {
+		if c == oc && i == lastOc+1 {
+			t.printError(p, "Route can not have {{")
+			rtn = false
+			break
+		} else if c == oc {
+			lastOc = i
+		}
+		if c == cc && i == lastCc+1 {
+			t.printError(p, "Route can not have }}")
+			rtn = false
+			break
+		} else if c == cc {
+			lastCc = i
+		}
+	}
+	return rtn
+}
+
 func (t *ReqRoute) chechBackSlash(p string) bool {
 	var rtn = true
 	bs := rune('/')
@@ -96,17 +122,18 @@ func (t *ReqRoute) chechBackSlash(p string) bool {
 	for i, c := range p {
 		if i == 0 && c != bs {
 			rtn = false
-			t.printError(p, "Bad backslash")
+			t.printError(p, "Route must have leading backslash")
 			break
 		} else if i != 0 {
 			if c == bs && i == lastBs+1 {
 				rtn = false
-				t.printError(p, "Bad backslash")
+				t.printError(p, "Misplaced backslash")
 				break
 			} else if c == bs && i != len(p)-1 {
 				lastBs = i
 			} else if c == bs && i == len(p)-1 {
 				rtn = false
+				t.printError(p, "Backslash not allowed on end of route")
 			}
 		}
 	}
