@@ -25,6 +25,7 @@ type ReqRoute struct {
 func (t *ReqRoute) New() Route {
 	var m pathMatcher
 	t.matcher = m.New()
+	t.pathVarNames = &[]string{}
 	return t
 }
 
@@ -44,21 +45,38 @@ func (t *ReqRoute) HandlerFunc(f func(http.ResponseWriter, *http.Request)) Route
 // Path Path
 func (t *ReqRoute) Path(p string) Route {
 	if t.chechPath(p) && t.matcher.addPath(p) {
-		t.path = p
-		t.pathVarNames = t.extractPathVarNames(p)
+		t.pathVarNames, t.path = t.extractPathAndVarNames(p)
+		if len(*t.pathVarNames) > 0 {
+			t.pathVarsUsed = true
+		}
 		t.active = true
 	}
 	return t
 }
 
 // Host Host
-func (t *ReqRoute) Host(h string) Route {
-	return nil
-}
+// func (t *ReqRoute) Host(h string) Route {
+// 	return nil
+// }
 
 // GetHandler GetHandler
 func (t *ReqRoute) GetHandler() http.Handler {
 	return t.handler
+}
+
+// GetPath GetPath
+func (t *ReqRoute) GetPath() string {
+	return t.path
+}
+
+// GetVarNames GetVarNames
+func (t *ReqRoute) GetVarNames() *[]string {
+	return t.pathVarNames
+}
+
+// IsActive IsActive
+func (t *ReqRoute) IsActive() bool {
+	return t.active
 }
 
 func (t *ReqRoute) chechPath(p string) bool {
@@ -142,28 +160,41 @@ func (t *ReqRoute) chechBackSlash(p string) bool {
 	return rtn
 }
 
-func (t *ReqRoute) extractPathVarNames(p string) *[]string {
-	var rtn []string
+func (t *ReqRoute) extractPathAndVarNames(p string) (*[]string, string) {
+	var vars = []string{}
+	var pth string
 	// rtn:= make([]string,1)
 	oc := rune('{')
 	cc := rune('}')
+	var pend int
 	var ind1 int
 	var ind2 int
 	for i, c := range p {
 		if c == oc {
 			ind1 = i
+			if pend == 0 {
+				pend = i
+			}
 		}
 		if c == cc {
 			ind2 = i
 		}
 		if ind1 > 0 && ind1 < ind2 {
 			pvar := p[ind1+1 : ind2]
-			rtn = append(rtn, pvar)
+			vars = append(vars, pvar)
 			ind1 = 0
 			ind2 = 0
 		}
 	}
-	return &rtn
+	if pend > 0 {
+		if pth = p[0 : pend-1]; len(pth) == 0 {
+			pth = p[0:pend]
+		}
+		//pth = p[0 : pend-1]
+	} else {
+		pth = p
+	}
+	return &vars, pth
 }
 
 func (t *ReqRoute) printError(p string, cause string) {

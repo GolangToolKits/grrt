@@ -1,6 +1,7 @@
 package grrt
 
 import (
+	"fmt"
 	"net/http"
 	"reflect"
 	"testing"
@@ -246,7 +247,7 @@ func TestReqRoute_chechCurlyPlacement(t *testing.T) {
 	}
 }
 
-func TestReqRoute_extractPathVarNames(t *testing.T) {
+func TestReqRoute_extractPathAndVarNames(t *testing.T) {
 	type fields struct {
 		handler      http.Handler
 		host         string
@@ -264,6 +265,7 @@ func TestReqRoute_extractPathVarNames(t *testing.T) {
 		fields fields
 		args   args
 		want   *[]string
+		want1  string
 	}{
 		// TODO: Add test cases.
 		{
@@ -271,21 +273,40 @@ func TestReqRoute_extractPathVarNames(t *testing.T) {
 			args: args{
 				p: "/route/test/{param1}",
 			},
-			want: &[]string{"param1"},
+			want:  &[]string{"param1"},
+			want1: "/route/test",
 		},
 		{
 			name: "test 2 two var success",
 			args: args{
 				p: "/route/test/{param1}/{param2}",
 			},
-			want: &[]string{"param1", "param2"},
+			want:  &[]string{"param1", "param2"},
+			want1: "/route/test",
 		},
 		{
 			name: "test 3 four var success",
 			args: args{
 				p: "/route/test/{param1}/{param2}/{param3}/{param4}",
 			},
-			want: &[]string{"param1", "param2", "param3", "param4"},
+			want:  &[]string{"param1", "param2", "param3", "param4"},
+			want1: "/route/test",
+		},
+		{
+			name: "test 4 four var success",
+			args: args{
+				p: "/{ss}",
+			},
+			want:  &[]string{"ss"},
+			want1: "/",
+		},
+		{
+			name: "test 5 no var success",
+			args: args{
+				p: "/route/test",
+			},
+			want:  &[]string{},
+			want1: "/route/test",
 		},
 	}
 	for _, tt := range tests {
@@ -299,8 +320,313 @@ func TestReqRoute_extractPathVarNames(t *testing.T) {
 				pathVarsUsed: tt.fields.pathVarsUsed,
 				pathVarNames: tt.fields.pathVarNames,
 			}
-			if got := tr.extractPathVarNames(tt.args.p); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("ReqRoute.extractPathVarNames() = %v, want %v", got, tt.want)
+			got, got1 := tr.extractPathAndVarNames(tt.args.p)
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("ReqRoute.extractPathAndVarNames() got = %v, want %v", got, tt.want)
+			}
+			if got1 != tt.want1 {
+				t.Errorf("ReqRoute.extractPathAndVarNames() got1 = %v, want %v", got1, tt.want1)
+			}
+		})
+	}
+}
+
+func TestReqRoute_Path(t *testing.T) {
+	//var rrt ReqRoute
+	//rt := rrt.New()
+
+	var m pathMatcher
+	matcher := m.New()
+
+	type fields struct {
+		handler      http.Handler
+		host         string
+		path         string
+		matcher      Matcher
+		active       bool
+		pathVarsUsed bool
+		pathVarNames *[]string
+	}
+	type args struct {
+		p string
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   Route
+	}{
+		// TODO: Add test cases.
+		{
+			name: "test 1 ",
+			args: args{
+				p: "/route/test/{param1}",
+			},
+			fields: fields{
+				matcher:      matcher,
+				pathVarNames: &[]string{},
+			},
+			want: &ReqRoute{
+				path:         "/route/test",
+				active:       true,
+				pathVarsUsed: true,
+				pathVarNames: &[]string{"param1"},
+			},
+		},
+		{
+			name: "test 2 ",
+			args: args{
+				p: "/route/test",
+			},
+			fields: fields{
+				matcher:      matcher,
+				pathVarNames: &[]string{},
+			},
+			want: &ReqRoute{
+				path:         "/route/test",
+				active:       true,
+				pathVarsUsed: true,
+				pathVarNames: &[]string{},
+			},
+		},
+		{
+			name: "test 3 ",
+			args: args{
+				p: "/route/test/{{param1}",
+			},
+			fields: fields{
+				matcher:      matcher,
+				pathVarNames: &[]string{},
+			},
+			want: &ReqRoute{
+				path:         "",
+				active:       false,
+				pathVarsUsed: false,
+				pathVarNames: &[]string{},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tr := &ReqRoute{
+				handler:      tt.fields.handler,
+				host:         tt.fields.host,
+				path:         tt.fields.path,
+				matcher:      tt.fields.matcher,
+				active:       tt.fields.active,
+				pathVarsUsed: tt.fields.pathVarsUsed,
+				pathVarNames: tt.fields.pathVarNames,
+			}
+			// if got := tr.Path(tt.args.p); !reflect.DeepEqual(got, tt.want) {
+			if got := tr.Path(tt.args.p); got.GetPath() != tt.want.GetPath() ||
+				len(*got.GetVarNames()) != len(*tt.want.GetVarNames()) ||
+				got.IsActive() != tt.want.IsActive() {
+				fmt.Println("got: ", got)
+				t.Errorf("ReqRoute.Path() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestReqRoute_Handler(t *testing.T) {
+	var hd http.Handler
+	type fields struct {
+		handler      http.Handler
+		host         string
+		path         string
+		matcher      Matcher
+		active       bool
+		pathVarsUsed bool
+		pathVarNames *[]string
+	}
+	type args struct {
+		handler http.Handler
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   Route
+	}{
+		// TODO: Add test cases.
+		{
+			name: "test 1",
+			args: args{
+				handler: hd,
+			},
+			fields: fields{
+				handler: hd,
+				active:  true,
+			},
+			want: &ReqRoute{
+				path:    "",
+				active:  true,
+				handler: hd,
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tr := &ReqRoute{
+				handler:      tt.fields.handler,
+				host:         tt.fields.host,
+				path:         tt.fields.path,
+				matcher:      tt.fields.matcher,
+				active:       tt.fields.active,
+				pathVarsUsed: tt.fields.pathVarsUsed,
+				pathVarNames: tt.fields.pathVarNames,
+			}
+			if got := tr.Handler(tt.args.handler); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("ReqRoute.Handler() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestReqRoute_HandlerFunc(t *testing.T) {
+	var nf func(http.ResponseWriter, *http.Request)
+	type fields struct {
+		handler      http.Handler
+		host         string
+		path         string
+		matcher      Matcher
+		active       bool
+		pathVarsUsed bool
+		pathVarNames *[]string
+	}
+	type args struct {
+		f func(http.ResponseWriter, *http.Request)
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   Route
+	}{
+		// TODO: Add test cases.
+		{
+			name: "test 1",
+			args: args{
+				f: nf,
+			},
+			fields: fields{
+				handler: http.HandlerFunc(nf),
+				active:  true,
+			},
+			want: &ReqRoute{
+				path:    "",
+				active:  true,
+				handler: http.HandlerFunc(nf),
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tr := &ReqRoute{
+				handler:      tt.fields.handler,
+				host:         tt.fields.host,
+				path:         tt.fields.path,
+				matcher:      tt.fields.matcher,
+				active:       tt.fields.active,
+				pathVarsUsed: tt.fields.pathVarsUsed,
+				pathVarNames: tt.fields.pathVarNames,
+			}
+			if got := tr.HandlerFunc(tt.args.f); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("ReqRoute.HandlerFunc() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestReqRoute_GetHandler(t *testing.T) {
+	var nf func(http.ResponseWriter, *http.Request)
+	var hd = http.HandlerFunc(nf)
+	type fields struct {
+		handler      http.Handler
+		host         string
+		path         string
+		matcher      Matcher
+		active       bool
+		pathVarsUsed bool
+		pathVarNames *[]string
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		want   http.Handler
+	}{
+		// TODO: Add test cases.
+		{
+			name: "test 1",
+			fields: fields{
+				handler: hd,
+				active:  true,
+			},
+			want: hd,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tr := &ReqRoute{
+				handler:      tt.fields.handler,
+				host:         tt.fields.host,
+				path:         tt.fields.path,
+				matcher:      tt.fields.matcher,
+				active:       tt.fields.active,
+				pathVarsUsed: tt.fields.pathVarsUsed,
+				pathVarNames: tt.fields.pathVarNames,
+			}
+			if got := tr.GetHandler(); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("ReqRoute.GetHandler() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestReqRoute_New(t *testing.T) {
+	var m pathMatcher
+	matcher := m.New()
+	var vs = &[]string{}
+	type fields struct {
+		handler      http.Handler
+		host         string
+		path         string
+		matcher      Matcher
+		active       bool
+		pathVarsUsed bool
+		pathVarNames *[]string
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		want   Route
+	}{
+		// TODO: Add test cases.
+		{
+			name: "test 1",
+			fields: fields{
+				matcher: matcher,
+				pathVarNames: vs,
+			},
+			want: &ReqRoute{
+				matcher: matcher,
+				pathVarNames: vs,
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tr := &ReqRoute{
+				handler:      tt.fields.handler,
+				host:         tt.fields.host,
+				path:         tt.fields.path,
+				matcher:      tt.fields.matcher,
+				active:       tt.fields.active,
+				pathVarsUsed: tt.fields.pathVarsUsed,
+				pathVarNames: tt.fields.pathVarNames,
+			}
+			if got := tr.New(); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("ReqRoute.New() = %v, want %v", got, tt.want)
 			}
 		})
 	}
