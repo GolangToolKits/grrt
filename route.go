@@ -15,5 +15,9 @@ type Route interface {
 	GetPath() string
 	GetVarNames() *[]string
 	IsActive() bool
+	Methods(ms ...string) Route
+	GetMethods() *[]string
+	IsMethodAllowed(m string) bool
+	//-------for future development---------------------------
 	//Host(h string) Route
 }

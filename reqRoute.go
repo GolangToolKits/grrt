@@ -7,6 +7,7 @@ package grrt
 import (
 	"log"
 	"net/http"
+	"strings"
 )
 
 // ReqRoute ReqRoute
@@ -19,6 +20,7 @@ type ReqRoute struct {
 	active       bool
 	pathVarsUsed bool
 	pathVarNames *[]string
+	methods      *[]string
 }
 
 // New New
@@ -26,6 +28,7 @@ func (t *ReqRoute) New() Route {
 	var m pathMatcher
 	t.matcher = m.New()
 	t.pathVarNames = &[]string{}
+	t.methods = &[]string{}
 	return t
 }
 
@@ -54,7 +57,38 @@ func (t *ReqRoute) Path(p string) Route {
 	return t
 }
 
-// Host Host
+// Methods Methods
+func (t *ReqRoute) Methods(ms ...string) Route {
+	var mts []string
+	for _, m := range ms {
+		mts = append(mts, strings.ToUpper(m))
+	}
+	t.methods = &mts
+	return t
+}
+
+// GetMethods GetMethods
+func (t *ReqRoute) GetMethods() *[]string {
+	return t.methods
+}
+
+// IsMethodAllowed IsMethodAllowed
+func (t *ReqRoute) IsMethodAllowed(m string) bool {
+	var rtn bool
+	if len(*t.methods) == 0 {
+		rtn = true
+	} else {
+		for _, mt := range *t.methods {
+			if mt == m {
+				rtn = true
+				break
+			}
+		}
+	}
+	return rtn
+}
+
+// Host Host --future development----
 // func (t *ReqRoute) Host(h string) Route {
 // 	return nil
 // }

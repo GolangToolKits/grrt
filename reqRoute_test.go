@@ -587,6 +587,7 @@ func TestReqRoute_New(t *testing.T) {
 	var m pathMatcher
 	matcher := m.New()
 	var vs = &[]string{}
+	var mt = &[]string{}
 	type fields struct {
 		handler      http.Handler
 		host         string
@@ -595,6 +596,7 @@ func TestReqRoute_New(t *testing.T) {
 		active       bool
 		pathVarsUsed bool
 		pathVarNames *[]string
+		methods      *[]string
 	}
 	tests := []struct {
 		name   string
@@ -605,12 +607,14 @@ func TestReqRoute_New(t *testing.T) {
 		{
 			name: "test 1",
 			fields: fields{
-				matcher: matcher,
+				matcher:      matcher,
 				pathVarNames: vs,
+				methods:      mt,
 			},
 			want: &ReqRoute{
-				matcher: matcher,
+				matcher:      matcher,
 				pathVarNames: vs,
+				methods:      mt,
 			},
 		},
 	}
@@ -627,6 +631,157 @@ func TestReqRoute_New(t *testing.T) {
 			}
 			if got := tr.New(); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("ReqRoute.New() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestReqRoute_Methods(t *testing.T) {
+	var mt = &[]string{"POST", "PUT"}
+	type fields struct {
+		handler      http.Handler
+		host         string
+		path         string
+		matcher      Matcher
+		active       bool
+		pathVarsUsed bool
+		pathVarNames *[]string
+		methods      *[]string
+	}
+	type args struct {
+		ms []string
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   Route
+	}{
+		// TODO: Add test cases.
+		{
+			name: "test 1",
+			fields: fields{
+				methods: &[]string{},
+			},
+			args: args{
+				ms: []string{"post", "put"},
+			},
+			want: &ReqRoute{
+				//matcher:      matcher,
+				//pathVarNames: vs,
+				methods: mt,
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tr := &ReqRoute{
+				handler:      tt.fields.handler,
+				host:         tt.fields.host,
+				path:         tt.fields.path,
+				matcher:      tt.fields.matcher,
+				active:       tt.fields.active,
+				pathVarsUsed: tt.fields.pathVarsUsed,
+				pathVarNames: tt.fields.pathVarNames,
+				methods:      tt.fields.methods,
+			}
+			if got := tr.Methods(tt.args.ms...); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("ReqRoute.Methods() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestReqRoute_GetMethods(t *testing.T) {
+	type fields struct {
+		handler      http.Handler
+		host         string
+		path         string
+		matcher      Matcher
+		active       bool
+		pathVarsUsed bool
+		pathVarNames *[]string
+		methods      *[]string
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		want   *[]string
+	}{
+		// TODO: Add test cases.
+		{
+			name: "test 1",
+			fields: fields{
+				methods: &[]string{"POST", "PUT"},
+			},
+			want: &[]string{"POST", "PUT"},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tr := &ReqRoute{
+				handler:      tt.fields.handler,
+				host:         tt.fields.host,
+				path:         tt.fields.path,
+				matcher:      tt.fields.matcher,
+				active:       tt.fields.active,
+				pathVarsUsed: tt.fields.pathVarsUsed,
+				pathVarNames: tt.fields.pathVarNames,
+				methods:      tt.fields.methods,
+			}
+			if got := tr.GetMethods(); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("ReqRoute.GetMethods() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestReqRoute_IsMethodAllowed(t *testing.T) {
+	type fields struct {
+		handler      http.Handler
+		host         string
+		path         string
+		matcher      Matcher
+		active       bool
+		pathVarsUsed bool
+		pathVarNames *[]string
+		methods      *[]string
+	}
+	type args struct {
+		m string
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   bool
+	}{
+		// TODO: Add test cases.
+		{
+			name: "test 1",
+			fields: fields{
+				methods: &[]string{"POST", "GET"},
+			},
+			args: args{
+				m: "POST",
+			},
+			want: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tr := &ReqRoute{
+				handler:      tt.fields.handler,
+				host:         tt.fields.host,
+				path:         tt.fields.path,
+				matcher:      tt.fields.matcher,
+				active:       tt.fields.active,
+				pathVarsUsed: tt.fields.pathVarsUsed,
+				pathVarNames: tt.fields.pathVarNames,
+				methods:      tt.fields.methods,
+			}
+			if got := tr.IsMethodAllowed(tt.args.m); got != tt.want {
+				t.Errorf("ReqRoute.IsMethodAllowed() = %v, want %v", got, tt.want)
 			}
 		})
 	}
