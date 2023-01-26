@@ -18,6 +18,8 @@ type Route interface {
 	Methods(ms ...string) Route
 	GetMethods() *[]string
 	IsMethodAllowed(m string) bool
+	IsPathVarsUsed() bool
+	GetPathVarsCount() int
 	//-------for future development---------------------------
 	//Host(h string) Route
 }

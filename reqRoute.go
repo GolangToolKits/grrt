@@ -88,6 +88,20 @@ func (t *ReqRoute) IsMethodAllowed(m string) bool {
 	return rtn
 }
 
+// IsPathVarsUsed IsPathVarsUsed
+func (t *ReqRoute) IsPathVarsUsed() bool {
+	return t.pathVarsUsed
+}
+
+// GetPathVarsCount GetPathVarsCount
+func (t *ReqRoute) GetPathVarsCount() int {
+	var rtn int = 0
+	if t.pathVarNames != nil {
+		rtn = len(*t.pathVarNames)
+	}
+	return rtn
+}
+
 // Host Host --future development----
 // func (t *ReqRoute) Host(h string) Route {
 // 	return nil

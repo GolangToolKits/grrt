@@ -15,7 +15,7 @@ type Router interface {
 
 // NewRouter NewRouter
 func NewRouter() Router {
-	var rtn = ReqRouter{namedRoutes: make(map[string]Route)}
+	var rtn = ReqRouter{namedRoutes: make(map[string]*[]Route)}
 	return &rtn
 }
 

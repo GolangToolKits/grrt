@@ -6,7 +6,7 @@ import (
 )
 
 func TestNewRouter(t *testing.T) {
-	var rn = make(map[string]Route)
+	var rn = make(map[string]*[]Route)
 	tests := []struct {
 		name string
 		want Router
