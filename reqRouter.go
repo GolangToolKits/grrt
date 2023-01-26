@@ -22,7 +22,10 @@ type ReqRouter struct {
 	namedRoutes map[string]*[]Route
 }
 
+// ServeHTTP ServeHTTP dispatches the handler registered in the matched route.
 func (t ReqRouter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	// When there is a match, the route variables can be retrieved calling
+	// mux.Vars(request).
 	path := r.URL.Path
 	rt, fvars := t.findRouteAndVars(path)
 	if len(*fvars) > 0 {
@@ -106,22 +109,5 @@ func (t ReqRouter) HandleFunc(path string, f func(http.ResponseWriter, *http.Req
 		}
 
 	}
-	//fr := t.namedRoutes[rt.GetPath()]
-	// if fr == nil{
-	// 	var prt []Route
-	// }
-	//if len(*fr) == 0 {
-	// *fr = append(*fr, rt)
-	//t.namedRoutes[rt.GetPath()] = fr
-	//} else {
-
-	//}
-	//t.namedRoutes[rt.GetPath()] = rt
 	return rt
 }
-
-// func (t ReqRouter) getReqVars(r *http.Request) {
-// 	var vars map[string]string
-// 	ctx := context.WithValue(r.Context(), 0, vars)
-// 	log.Println("ctx: ", ctx)
-// }

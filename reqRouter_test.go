@@ -9,8 +9,7 @@ import (
 )
 
 func TestReqRouter_NewRoute(t *testing.T) {
-	var m pathMatcher
-	matcher := m.New()
+
 	var vs = &[]string{}
 	var mt = &[]string{}
 	type fields struct {
@@ -24,11 +23,9 @@ func TestReqRouter_NewRoute(t *testing.T) {
 		// TODO: Add test cases.
 		{
 			name: "test 1",
-			// fields: fields{
 
-			// },
 			want: &ReqRoute{
-				matcher:      matcher,
+
 				pathVarNames: vs,
 				methods:      mt,
 			},
@@ -47,8 +44,7 @@ func TestReqRouter_NewRoute(t *testing.T) {
 }
 
 func TestReqRouter_HandleFunc(t *testing.T) {
-	var m pathMatcher
-	matcher := m.New()
+
 	var nr = make(map[string]*[]Route)
 	var nf func(http.ResponseWriter, *http.Request)
 	var nr2 = make(map[string]*[]Route)
@@ -56,13 +52,11 @@ func TestReqRouter_HandleFunc(t *testing.T) {
 		path:         "/route/test1",
 		active:       true,
 		pathVarsUsed: true,
-		pathVarNames: &[]string{"id"},
-		matcher:      matcher,
-		methods:      &[]string{},
+		pathVarNames: &[]string{"id"},		
+		methods: &[]string{},
 	}
 	nr2["/route/test1"] = &[]Route{rt2}
-	// var m pathMatcher
-	// matcher := m.New()
+
 	type fields struct {
 		namedRoutes map[string]*[]Route
 	}
@@ -90,9 +84,8 @@ func TestReqRouter_HandleFunc(t *testing.T) {
 				path:         "/route/test1",
 				active:       true,
 				pathVarsUsed: false,
-				pathVarNames: &[]string{},
-				matcher:      matcher,
-				methods:      &[]string{},
+				pathVarNames: &[]string{},				
+				methods: &[]string{},
 			},
 		},
 		{
@@ -108,9 +101,8 @@ func TestReqRouter_HandleFunc(t *testing.T) {
 				path:         "/route/test1",
 				active:       true,
 				pathVarsUsed: true,
-				pathVarNames: &[]string{"name", "cat"},
-				matcher:      matcher,
-				methods:      &[]string{},
+				pathVarNames: &[]string{"name", "cat"},				
+				methods: &[]string{},
 			},
 		},
 		{
@@ -126,9 +118,8 @@ func TestReqRouter_HandleFunc(t *testing.T) {
 				path:         "/route/test1",
 				active:       true,
 				pathVarsUsed: true,
-				pathVarNames: &[]string{"name"},
-				matcher:      matcher,
-				methods:      &[]string{},
+				pathVarNames: &[]string{"name"},				
+				methods: &[]string{},
 			},
 		},
 	}
@@ -149,8 +140,7 @@ func TestReqRouter_HandleFunc(t *testing.T) {
 func TestReqRouter_HandleFuncFullCall(t *testing.T) {
 	var nr = make(map[string]*[]Route)
 	var nf func(http.ResponseWriter, *http.Request)
-	var m pathMatcher
-	matcher := m.New()
+
 	type fields struct {
 		namedRoutes map[string]*[]Route
 	}
@@ -179,8 +169,8 @@ func TestReqRouter_HandleFuncFullCall(t *testing.T) {
 				active:       true,
 				pathVarsUsed: false,
 				pathVarNames: &[]string{},
-				matcher:      matcher,
-				methods:      &[]string{},
+
+				methods: &[]string{},
 			},
 		},
 	}
@@ -422,7 +412,7 @@ func TestReqRouter_findRoute(t *testing.T) {
 				active:       true,
 				pathVarsUsed: true,
 				pathVarNames: varNames,
-				//matcher:      matcher,
+
 				methods: methods,
 			},
 			want1: &[]string{"p1", "p2"},
@@ -439,8 +429,7 @@ func TestReqRouter_findRoute(t *testing.T) {
 				path:         "/test/test1/test2/test3",
 				active:       true,
 				pathVarsUsed: false,
-				pathVarNames: varNames2,
-				//matcher:      matcher,
+				pathVarNames: varNames2,				
 				methods: methods2,
 			},
 			want1: &[]string{},
@@ -458,7 +447,7 @@ func TestReqRouter_findRoute(t *testing.T) {
 				active:       true,
 				pathVarsUsed: true,
 				pathVarNames: varNames33,
-				//matcher:      matcher,
+
 				methods: methods33,
 			},
 			want1: &[]string{"p1"},

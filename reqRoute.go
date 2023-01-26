@@ -16,17 +16,14 @@ type ReqRoute struct {
 	handler      http.Handler
 	host         string
 	path         string
-	matcher      Matcher
 	active       bool
 	pathVarsUsed bool
 	pathVarNames *[]string
 	methods      *[]string
 }
 
-// New New
+// New New creates new Route
 func (t *ReqRoute) New() Route {
-	var m pathMatcher
-	t.matcher = m.New()
 	t.pathVarNames = &[]string{}
 	t.methods = &[]string{}
 	return t
@@ -47,7 +44,7 @@ func (t *ReqRoute) HandlerFunc(f func(http.ResponseWriter, *http.Request)) Route
 
 // Path Path
 func (t *ReqRoute) Path(p string) Route {
-	if t.chechPath(p) && t.matcher.addPath(p) {
+	if t.chechPath(p) {
 		t.pathVarNames, t.path = t.extractPathAndVarNames(p)
 		if len(*t.pathVarNames) > 0 {
 			t.pathVarsUsed = true

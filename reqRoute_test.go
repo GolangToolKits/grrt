@@ -12,7 +12,6 @@ func TestReqRoute_chechPath(t *testing.T) {
 		handler      http.Handler
 		host         string
 		path         string
-		matcher      Matcher
 		active       bool
 		pathVarsUsed bool
 	}
@@ -47,7 +46,6 @@ func TestReqRoute_chechPath(t *testing.T) {
 				handler:      tt.fields.handler,
 				host:         tt.fields.host,
 				path:         tt.fields.path,
-				matcher:      tt.fields.matcher,
 				active:       tt.fields.active,
 				pathVarsUsed: tt.fields.pathVarsUsed,
 			}
@@ -63,7 +61,6 @@ func TestReqRoute_chechCurlys(t *testing.T) {
 		handler      http.Handler
 		host         string
 		path         string
-		matcher      Matcher
 		active       bool
 		pathVarsUsed bool
 	}
@@ -98,7 +95,6 @@ func TestReqRoute_chechCurlys(t *testing.T) {
 				handler:      tt.fields.handler,
 				host:         tt.fields.host,
 				path:         tt.fields.path,
-				matcher:      tt.fields.matcher,
 				active:       tt.fields.active,
 				pathVarsUsed: tt.fields.pathVarsUsed,
 			}
@@ -114,7 +110,6 @@ func TestReqRoute_chechBackSlash(t *testing.T) {
 		handler      http.Handler
 		host         string
 		path         string
-		matcher      Matcher
 		active       bool
 		pathVarsUsed bool
 	}
@@ -177,7 +172,6 @@ func TestReqRoute_chechBackSlash(t *testing.T) {
 				handler:      tt.fields.handler,
 				host:         tt.fields.host,
 				path:         tt.fields.path,
-				matcher:      tt.fields.matcher,
 				active:       tt.fields.active,
 				pathVarsUsed: tt.fields.pathVarsUsed,
 			}
@@ -193,7 +187,6 @@ func TestReqRoute_chechCurlyPlacement(t *testing.T) {
 		handler      http.Handler
 		host         string
 		path         string
-		matcher      Matcher
 		active       bool
 		pathVarsUsed bool
 	}
@@ -236,7 +229,6 @@ func TestReqRoute_chechCurlyPlacement(t *testing.T) {
 				handler:      tt.fields.handler,
 				host:         tt.fields.host,
 				path:         tt.fields.path,
-				matcher:      tt.fields.matcher,
 				active:       tt.fields.active,
 				pathVarsUsed: tt.fields.pathVarsUsed,
 			}
@@ -252,7 +244,6 @@ func TestReqRoute_extractPathAndVarNames(t *testing.T) {
 		handler      http.Handler
 		host         string
 		path         string
-		matcher      Matcher
 		active       bool
 		pathVarsUsed bool
 		pathVarNames *[]string
@@ -312,10 +303,9 @@ func TestReqRoute_extractPathAndVarNames(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			tr := &ReqRoute{
-				handler:      tt.fields.handler,
-				host:         tt.fields.host,
-				path:         tt.fields.path,
-				matcher:      tt.fields.matcher,
+				handler: tt.fields.handler,
+				host:    tt.fields.host,
+				path:    tt.fields.path,				
 				active:       tt.fields.active,
 				pathVarsUsed: tt.fields.pathVarsUsed,
 				pathVarNames: tt.fields.pathVarNames,
@@ -332,17 +322,11 @@ func TestReqRoute_extractPathAndVarNames(t *testing.T) {
 }
 
 func TestReqRoute_Path(t *testing.T) {
-	//var rrt ReqRoute
-	//rt := rrt.New()
-
-	var m pathMatcher
-	matcher := m.New()
 
 	type fields struct {
-		handler      http.Handler
-		host         string
-		path         string
-		matcher      Matcher
+		handler http.Handler
+		host    string
+		path    string		
 		active       bool
 		pathVarsUsed bool
 		pathVarNames *[]string
@@ -363,7 +347,6 @@ func TestReqRoute_Path(t *testing.T) {
 				p: "/route/test/{param1}",
 			},
 			fields: fields{
-				matcher:      matcher,
 				pathVarNames: &[]string{},
 			},
 			want: &ReqRoute{
@@ -378,8 +361,7 @@ func TestReqRoute_Path(t *testing.T) {
 			args: args{
 				p: "/route/test",
 			},
-			fields: fields{
-				matcher:      matcher,
+			fields: fields{				
 				pathVarNames: &[]string{},
 			},
 			want: &ReqRoute{
@@ -395,7 +377,6 @@ func TestReqRoute_Path(t *testing.T) {
 				p: "/route/test/{{param1}",
 			},
 			fields: fields{
-				matcher:      matcher,
 				pathVarNames: &[]string{},
 			},
 			want: &ReqRoute{
@@ -412,7 +393,6 @@ func TestReqRoute_Path(t *testing.T) {
 				handler:      tt.fields.handler,
 				host:         tt.fields.host,
 				path:         tt.fields.path,
-				matcher:      tt.fields.matcher,
 				active:       tt.fields.active,
 				pathVarsUsed: tt.fields.pathVarsUsed,
 				pathVarNames: tt.fields.pathVarNames,
@@ -434,7 +414,6 @@ func TestReqRoute_Handler(t *testing.T) {
 		handler      http.Handler
 		host         string
 		path         string
-		matcher      Matcher
 		active       bool
 		pathVarsUsed bool
 		pathVarNames *[]string
@@ -471,7 +450,6 @@ func TestReqRoute_Handler(t *testing.T) {
 				handler:      tt.fields.handler,
 				host:         tt.fields.host,
 				path:         tt.fields.path,
-				matcher:      tt.fields.matcher,
 				active:       tt.fields.active,
 				pathVarsUsed: tt.fields.pathVarsUsed,
 				pathVarNames: tt.fields.pathVarNames,
@@ -489,7 +467,6 @@ func TestReqRoute_HandlerFunc(t *testing.T) {
 		handler      http.Handler
 		host         string
 		path         string
-		matcher      Matcher
 		active       bool
 		pathVarsUsed bool
 		pathVarNames *[]string
@@ -526,7 +503,6 @@ func TestReqRoute_HandlerFunc(t *testing.T) {
 				handler:      tt.fields.handler,
 				host:         tt.fields.host,
 				path:         tt.fields.path,
-				matcher:      tt.fields.matcher,
 				active:       tt.fields.active,
 				pathVarsUsed: tt.fields.pathVarsUsed,
 				pathVarNames: tt.fields.pathVarNames,
@@ -545,7 +521,6 @@ func TestReqRoute_GetHandler(t *testing.T) {
 		handler      http.Handler
 		host         string
 		path         string
-		matcher      Matcher
 		active       bool
 		pathVarsUsed bool
 		pathVarNames *[]string
@@ -571,7 +546,6 @@ func TestReqRoute_GetHandler(t *testing.T) {
 				handler:      tt.fields.handler,
 				host:         tt.fields.host,
 				path:         tt.fields.path,
-				matcher:      tt.fields.matcher,
 				active:       tt.fields.active,
 				pathVarsUsed: tt.fields.pathVarsUsed,
 				pathVarNames: tt.fields.pathVarNames,
@@ -584,15 +558,12 @@ func TestReqRoute_GetHandler(t *testing.T) {
 }
 
 func TestReqRoute_New(t *testing.T) {
-	var m pathMatcher
-	matcher := m.New()
 	var vs = &[]string{}
 	var mt = &[]string{}
 	type fields struct {
 		handler      http.Handler
 		host         string
 		path         string
-		matcher      Matcher
 		active       bool
 		pathVarsUsed bool
 		pathVarNames *[]string
@@ -607,12 +578,10 @@ func TestReqRoute_New(t *testing.T) {
 		{
 			name: "test 1",
 			fields: fields{
-				matcher:      matcher,
 				pathVarNames: vs,
 				methods:      mt,
 			},
 			want: &ReqRoute{
-				matcher:      matcher,
 				pathVarNames: vs,
 				methods:      mt,
 			},
@@ -624,7 +593,6 @@ func TestReqRoute_New(t *testing.T) {
 				handler:      tt.fields.handler,
 				host:         tt.fields.host,
 				path:         tt.fields.path,
-				matcher:      tt.fields.matcher,
 				active:       tt.fields.active,
 				pathVarsUsed: tt.fields.pathVarsUsed,
 				pathVarNames: tt.fields.pathVarNames,
@@ -642,7 +610,6 @@ func TestReqRoute_Methods(t *testing.T) {
 		handler      http.Handler
 		host         string
 		path         string
-		matcher      Matcher
 		active       bool
 		pathVarsUsed bool
 		pathVarNames *[]string
@@ -667,8 +634,6 @@ func TestReqRoute_Methods(t *testing.T) {
 				ms: []string{"post", "put"},
 			},
 			want: &ReqRoute{
-				//matcher:      matcher,
-				//pathVarNames: vs,
 				methods: mt,
 			},
 		},
@@ -679,7 +644,6 @@ func TestReqRoute_Methods(t *testing.T) {
 				handler:      tt.fields.handler,
 				host:         tt.fields.host,
 				path:         tt.fields.path,
-				matcher:      tt.fields.matcher,
 				active:       tt.fields.active,
 				pathVarsUsed: tt.fields.pathVarsUsed,
 				pathVarNames: tt.fields.pathVarNames,
@@ -697,7 +661,6 @@ func TestReqRoute_GetMethods(t *testing.T) {
 		handler      http.Handler
 		host         string
 		path         string
-		matcher      Matcher
 		active       bool
 		pathVarsUsed bool
 		pathVarNames *[]string
@@ -723,7 +686,6 @@ func TestReqRoute_GetMethods(t *testing.T) {
 				handler:      tt.fields.handler,
 				host:         tt.fields.host,
 				path:         tt.fields.path,
-				matcher:      tt.fields.matcher,
 				active:       tt.fields.active,
 				pathVarsUsed: tt.fields.pathVarsUsed,
 				pathVarNames: tt.fields.pathVarNames,
@@ -741,7 +703,6 @@ func TestReqRoute_IsMethodAllowed(t *testing.T) {
 		handler      http.Handler
 		host         string
 		path         string
-		matcher      Matcher
 		active       bool
 		pathVarsUsed bool
 		pathVarNames *[]string
@@ -767,6 +728,16 @@ func TestReqRoute_IsMethodAllowed(t *testing.T) {
 			},
 			want: true,
 		},
+		{
+			name: "test 2",
+			fields: fields{
+				methods: &[]string{},
+			},
+			args: args{
+				m: "POST",
+			},
+			want: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -774,7 +745,6 @@ func TestReqRoute_IsMethodAllowed(t *testing.T) {
 				handler:      tt.fields.handler,
 				host:         tt.fields.host,
 				path:         tt.fields.path,
-				matcher:      tt.fields.matcher,
 				active:       tt.fields.active,
 				pathVarsUsed: tt.fields.pathVarsUsed,
 				pathVarNames: tt.fields.pathVarNames,
@@ -782,6 +752,48 @@ func TestReqRoute_IsMethodAllowed(t *testing.T) {
 			}
 			if got := tr.IsMethodAllowed(tt.args.m); got != tt.want {
 				t.Errorf("ReqRoute.IsMethodAllowed() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestReqRoute_IsPathVarsUsed(t *testing.T) {
+	type fields struct {
+		handler      http.Handler
+		host         string
+		path         string
+		active       bool
+		pathVarsUsed bool
+		pathVarNames *[]string
+		methods      *[]string
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		want   bool
+	}{
+		// TODO: Add test cases.
+		{
+			name: "test 1",
+			fields: fields{
+				pathVarsUsed: true,
+			},
+			want: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tr := &ReqRoute{
+				handler:      tt.fields.handler,
+				host:         tt.fields.host,
+				path:         tt.fields.path,
+				active:       tt.fields.active,
+				pathVarsUsed: tt.fields.pathVarsUsed,
+				pathVarNames: tt.fields.pathVarNames,
+				methods:      tt.fields.methods,
+			}
+			if got := tr.IsPathVarsUsed(); got != tt.want {
+				t.Errorf("ReqRoute.IsPathVarsUsed() = %v, want %v", got, tt.want)
 			}
 		})
 	}
