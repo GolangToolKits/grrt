@@ -1,68 +1,42 @@
-# CircleCI configuration file
-
+# Use the latest 2.1 version of CircleCI pipeline process engine.
+# See: https://circleci.com/docs/2.0/configuration-reference
 version: 2.1
 
+# Define a job to be invoked later in a workflow.
+# See: https://circleci.com/docs/2.0/configuration-reference/#jobs
 jobs:
-  "test":
-    parameters:
-      version:
-        type: string
-        default: "latest"
-      golint:
-        type: boolean
-        default: true
-      modules:
-        type: boolean
-        default: true
-      goproxy:
-        type: string
-        default: ""
-        environment:
-      GO111MODULE: "on"
-      GOPROXY: "<< parameters.goproxy >>"
+  build:
+    working_directory: ~/repo
+    # Specify the execution environment. You can specify an image from Dockerhub or use one of our Convenience Images from CircleCI's Developer Hub.
+    # See: https://circleci.com/docs/2.0/configuration-reference/#docker-machine-macos-windows-executor
+    docker:
+      - image: circleci/golang:1.15.8
+    # Add steps to the job
+    # See: https://circleci.com/docs/2.0/configuration-reference/#steps
     steps:
       - checkout
+      - restore_cache:
+          keys:
+            - go-mod-v4-{{ checksum "go.sum" }}
       - run:
-          name: "Print the Go version"
-          command: >
-            go version
+          name: Install Dependencies
+          command: go mod download
+      - save_cache:
+          key: go-mod-v4-{{ checksum "go.sum" }}
+          paths:
+            - "/go/pkg/mod"
       - run:
-          name: "Fetch dependencies"
-          command: >
-            if [[ << parameters.modules >> = true ]]; then
-              go mod download
-              export GO111MODULE=on
-            else
-              go get -v ./...
-            fi
-      # Only run gofmt, vet & lint against the latest Go version
-      - run:
-          name: "Run golint"
-          command: >
-            if [ << parameters.version >> = "latest" ] && [ << parameters.golint >> = true ]; then
-              go get -u golang.org/x/lint/golint
-              golint ./...
-            fi
-      - run:
-          name: "Run gofmt"
-          command: >
-            if [[ << parameters.version >> = "latest" ]]; then
-              diff -u <(echo -n) <(gofmt -d -e .)
-            fi
-      - run:
-          name: "Run go vet"
-          command: >
-            if [[ << parameters.version >> = "latest" ]]; then
-              go vet -v ./...
-            fi
-      - run:
-          name: "Run go test (+ race detector)"
-          command: >
-            go test -v -race ./...
+          name: Run tests
+          command: |
+            mkdir -p /tmp/test-reports
+            gotestsum --junitfile /tmp/test-reports/unit-tests.xml
+      - store_test_results:
+          path: /tmp/test-reports
+
+# Invoke jobs via workflows
+# See: https://circleci.com/docs/2.0/configuration-reference/#workflows
 workflows:
-  tests:
+  sample: # This is the name of the workflow, feel free to change it to better match your workflow.
+    # Inside the workflow, you define the jobs you want to run.
     jobs:
-      - test:
-          matrix:
-            parameters:
-              version: ["latest"]
+      - build
