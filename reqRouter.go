@@ -38,7 +38,7 @@ func (t ReqRouter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			r = t.requestWithVars(r, rt.GetVarNames(), fvars)
 			// rt = frt
 		}
-	}	
+	}
 	if rt == nil || !rt.IsActive() {
 		w.WriteHeader(http.StatusNotFound)
 	} else if !rt.IsMethodAllowed(r.Method) {
