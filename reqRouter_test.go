@@ -52,8 +52,8 @@ func TestReqRouter_HandleFunc(t *testing.T) {
 		path:         "/route/test1",
 		active:       true,
 		pathVarsUsed: true,
-		pathVarNames: &[]string{"id"},		
-		methods: &[]string{},
+		pathVarNames: &[]string{"id"},
+		methods:      &[]string{},
 	}
 	nr2["/route/test1"] = &[]Route{rt2}
 
@@ -84,8 +84,8 @@ func TestReqRouter_HandleFunc(t *testing.T) {
 				path:         "/route/test1",
 				active:       true,
 				pathVarsUsed: false,
-				pathVarNames: &[]string{},				
-				methods: &[]string{},
+				pathVarNames: &[]string{},
+				methods:      &[]string{},
 			},
 		},
 		{
@@ -101,8 +101,8 @@ func TestReqRouter_HandleFunc(t *testing.T) {
 				path:         "/route/test1",
 				active:       true,
 				pathVarsUsed: true,
-				pathVarNames: &[]string{"name", "cat"},				
-				methods: &[]string{},
+				pathVarNames: &[]string{"name", "cat"},
+				methods:      &[]string{},
 			},
 		},
 		{
@@ -118,8 +118,8 @@ func TestReqRouter_HandleFunc(t *testing.T) {
 				path:         "/route/test1",
 				active:       true,
 				pathVarsUsed: true,
-				pathVarNames: &[]string{"name"},				
-				methods: &[]string{},
+				pathVarNames: &[]string{"name"},
+				methods:      &[]string{},
 			},
 		},
 	}
@@ -224,23 +224,38 @@ func TestReqRouter_ServeHTTP(t *testing.T) {
 	prt2 = append(prt2, &rt2)
 	rts2[rt2.path] = &prt2
 
+	var prrt ReqRoute
+	prrt.active = true
+	prrt.isPrefix = true
+	prrt.prefix = "/testPrefix/"
+	prrt.handler = hdl
+	prrt.methods = &[]string{}
+	var prrts = make(map[string]Route)
+
+	//var prt []Route
+	//prt = append(prt, &rt)
+	prrts[prrt.prefix] = &prrt
+
 	tw := httptest.NewRecorder()
 	tw2 := httptest.NewRecorder()
 	tw3 := httptest.NewRecorder()
 	tw4 := httptest.NewRecorder()
 	tw5 := httptest.NewRecorder()
+	tw6 := httptest.NewRecorder()
 
 	tr, _ := http.NewRequest("POST", "/test/test1", nil)
 	tr22, _ := http.NewRequest("GET", "/test/test1/p1/p2", nil)
 	tr2, _ := http.NewRequest("POST", "/test/te", nil)
 	tr3, _ := http.NewRequest("PUT", "/test/test1", nil)
 	tr4, _ := http.NewRequest("POST", "/test/test1/param1/param2", nil)
+	tr6, _ := http.NewRequest("POST", "/testPrefix/", nil)
 	// var prt []Route
 	// prt = append(prt, &rt)
 	// rts[rt.path] = &prt
 
 	type fields struct {
-		namedRoutes map[string]*[]Route
+		namedRoutes  map[string]*[]Route
+		prefixRoutes map[string]Route
 	}
 	type args struct {
 		w http.ResponseWriter
@@ -302,11 +317,22 @@ func TestReqRouter_ServeHTTP(t *testing.T) {
 				r: tr22,
 			},
 		},
+		{
+			name: "test 6 prefix",
+			fields: fields{
+				prefixRoutes: prrts,
+			},
+			args: args{
+				w: tw6,
+				r: tr6,
+			},
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			tr := ReqRouter{
-				namedRoutes: tt.fields.namedRoutes,
+				namedRoutes:  tt.fields.namedRoutes,
+				prefixRoutes: tt.fields.prefixRoutes,
 			}
 			tr.ServeHTTP(tt.args.w, tt.args.r)
 			if tt.name == "test 1" && tw.Code != http.StatusOK {
@@ -322,6 +348,9 @@ func TestReqRouter_ServeHTTP(t *testing.T) {
 				t.Fail()
 			}
 			if tt.name == "test 5" && tw5.Code != http.StatusOK {
+				t.Fail()
+			}
+			if tt.name == "test 6 prefix" && tw6.Code != http.StatusOK {
 				t.Fail()
 			}
 		})
@@ -429,8 +458,8 @@ func TestReqRouter_findRoute(t *testing.T) {
 				path:         "/test/test1/test2/test3",
 				active:       true,
 				pathVarsUsed: false,
-				pathVarNames: varNames2,				
-				methods: methods2,
+				pathVarNames: varNames2,
+				methods:      methods2,
 			},
 			want1: &[]string{},
 		},
@@ -504,6 +533,209 @@ func TestReqRouter_requestWithVars(t *testing.T) {
 			}
 			if got := tr.requestWithVars(tt.args.r, tt.args.pVarNames, tt.args.pvars); reflect.DeepEqual(got, tt.want) {
 				t.Errorf("ReqRouter.requestWithVars() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestReqRouter_PathPrefix(t *testing.T) {
+	// r1 := ReqRoute{
+	// 	prefix:   "/testPrefix/",
+	// 	active:   true,
+	// 	isPrefix: true,
+	// }
+	//nr  := make(map[string]*[]Route)
+	tm1 := make(map[string]Route)
+	//tm1["/testPrefix/"] = &r1
+
+	type fields struct {
+		namedRoutes  map[string]*[]Route
+		prefixRoutes map[string]Route
+		corsEnabled  bool
+	}
+	type args struct {
+		px string
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   Route
+	}{
+		// TODO: Add test cases.
+		{
+			name: "test 1",
+			fields: fields{
+				prefixRoutes: tm1,
+			},
+			args: args{
+				px: "/testPrefix/",
+			},
+			want: &ReqRoute{
+				prefix:   "/testPrefix/",
+				active:   true,
+				isPrefix: true,
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tr := ReqRouter{
+				namedRoutes:  tt.fields.namedRoutes,
+				prefixRoutes: tt.fields.prefixRoutes,
+				corsEnabled:  tt.fields.corsEnabled,
+			}
+			if got := tr.PathPrefix(tt.args.px); got.GetPrefix() != tt.want.GetPrefix() {
+				t.Errorf("ReqRouter.PathPrefix() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestReqRouter_Handle(t *testing.T) {
+	var nr = make(map[string]*[]Route)
+	var nf func(http.ResponseWriter, *http.Request)
+	var hdl = http.HandlerFunc(nf)
+
+	var nr2 = make(map[string]*[]Route)
+	nrt2 := &ReqRoute{
+		path:         "/route/test1",
+		active:       true,
+		pathVarsUsed: true,
+		pathVarNames: &[]string{"name"},
+		methods:      &[]string{},
+	}
+	nr2["/route/test1"] = &[]Route{nrt2}
+
+	type fields struct {
+		namedRoutes  map[string]*[]Route
+		prefixRoutes map[string]Route
+		corsEnabled  bool
+	}
+	type args struct {
+		path    string
+		handler http.Handler
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   Route
+	}{
+		// TODO: Add test cases.
+		{
+			name: "test 1",
+			fields: fields{
+				namedRoutes: nr,
+			},
+			args: args{
+				path:    "/route/test1",
+				handler: hdl,
+			},
+			want: &ReqRoute{
+				path:         "/route/test1",
+				active:       true,
+				pathVarsUsed: false,
+				pathVarNames: &[]string{},
+				methods:      &[]string{},
+			},
+		},
+		{
+			name: "test 2",
+			fields: fields{
+				namedRoutes: nr,
+			},
+			args: args{
+				path:    "/route/test1/{name}/{cat}",
+				handler: hdl,
+			},
+			want: &ReqRoute{
+				path:         "/route/test1",
+				active:       true,
+				pathVarsUsed: true,
+				pathVarNames: &[]string{"name", "cat"},
+				methods:      &[]string{},
+			},
+		},
+		{
+			name: "test 3",
+			fields: fields{
+				namedRoutes: nr2,
+			},
+			args: args{
+				path:    "/route/test1/{name}",
+				handler: hdl,
+			},
+			want: &ReqRoute{
+				path:         "/route/test1",
+				active:       true,
+				pathVarsUsed: true,
+				pathVarNames: &[]string{"name"},
+				methods:      &[]string{},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tr := ReqRouter{
+				namedRoutes:  tt.fields.namedRoutes,
+				prefixRoutes: tt.fields.prefixRoutes,
+				corsEnabled:  tt.fields.corsEnabled,
+			}
+			if got := tr.Handle(tt.args.path, tt.args.handler); got.GetPath() != tt.want.GetPath() ||
+				got.IsActive() != tt.want.IsActive() || got.IsPathVarsUsed() != tt.want.IsPathVarsUsed() {
+				t.Errorf("ReqRouter.Handle() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestReqRouter_findPrefix(t *testing.T) {
+	px1 := &ReqRoute{
+		prefix:   "/testPrefix/",
+		isPrefix: true,
+	}
+	pxm := make(map[string]Route)
+	pxm["/testPrefix/"] = px1
+
+	type fields struct {
+		namedRoutes  map[string]*[]Route
+		prefixRoutes map[string]Route
+		corsEnabled  bool
+	}
+	type args struct {
+		px string
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   Route
+	}{
+		// TODO: Add test cases.
+		{
+			name: "test 1",
+			fields: fields{
+				prefixRoutes: pxm,
+			},
+			args: args{
+				px: "/testPrefix/",
+			},
+			want: &ReqRoute{
+				prefix:   "/testPrefix/",
+				isPrefix: true,
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tr := ReqRouter{
+				namedRoutes:  tt.fields.namedRoutes,
+				prefixRoutes: tt.fields.prefixRoutes,
+				corsEnabled:  tt.fields.corsEnabled,
+			}
+			if got := tr.findPrefix(tt.args.px); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("ReqRouter.findPrefix() = %v, want %v", got, tt.want)
 			}
 		})
 	}

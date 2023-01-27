@@ -11,8 +11,10 @@ type Route interface {
 	Handler(handler http.Handler) Route
 	HandlerFunc(f func(http.ResponseWriter, *http.Request)) Route
 	Path(p string) Route
+	PathPrefix(p string) Route
 	GetHandler() http.Handler
 	GetPath() string
+	GetPrefix() string
 	GetVarNames() *[]string
 	IsActive() bool
 	Methods(ms ...string) Route

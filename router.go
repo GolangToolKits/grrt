@@ -9,7 +9,9 @@ import "net/http"
 // Router Router
 type Router interface {
 	ServeHTTP(w http.ResponseWriter, r *http.Request)
+	Handle(path string, handler http.Handler) Route
 	HandleFunc(path string, f func(http.ResponseWriter, *http.Request)) Route
+	PathPrefix(path string) Route 
 	NewRoute() Route
 }
 
@@ -27,5 +29,6 @@ func Vars(r *http.Request) map[string]string {
 	}
 	return rtn
 }
+
 
 // go mod init github.com/GolangToolKits/grrt

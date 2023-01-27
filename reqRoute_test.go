@@ -303,9 +303,9 @@ func TestReqRoute_extractPathAndVarNames(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			tr := &ReqRoute{
-				handler: tt.fields.handler,
-				host:    tt.fields.host,
-				path:    tt.fields.path,				
+				handler:      tt.fields.handler,
+				host:         tt.fields.host,
+				path:         tt.fields.path,
 				active:       tt.fields.active,
 				pathVarsUsed: tt.fields.pathVarsUsed,
 				pathVarNames: tt.fields.pathVarNames,
@@ -324,9 +324,9 @@ func TestReqRoute_extractPathAndVarNames(t *testing.T) {
 func TestReqRoute_Path(t *testing.T) {
 
 	type fields struct {
-		handler http.Handler
-		host    string
-		path    string		
+		handler      http.Handler
+		host         string
+		path         string
 		active       bool
 		pathVarsUsed bool
 		pathVarNames *[]string
@@ -361,7 +361,7 @@ func TestReqRoute_Path(t *testing.T) {
 			args: args{
 				p: "/route/test",
 			},
-			fields: fields{				
+			fields: fields{
 				pathVarNames: &[]string{},
 			},
 			want: &ReqRoute{
@@ -794,6 +794,187 @@ func TestReqRoute_IsPathVarsUsed(t *testing.T) {
 			}
 			if got := tr.IsPathVarsUsed(); got != tt.want {
 				t.Errorf("ReqRoute.IsPathVarsUsed() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestReqRoute_chechPrefix(t *testing.T) {
+	type fields struct {
+		handler      http.Handler
+		host         string
+		path         string
+		prefix       string
+		active       bool
+		pathVarsUsed bool
+		pathVarNames *[]string
+		methods      *[]string
+	}
+	type args struct {
+		p string
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   bool
+	}{
+		// TODO: Add test cases.
+		{
+			name: "test 1",
+			args: args{
+				p: "/testprefix",
+			},
+			want: true,
+		},
+		{
+			name: "test 2",
+			args: args{
+				p: "testprefix",
+			},
+			want: false,
+		},
+		{
+			name: "test 3",
+			args: args{
+				p: "/testprefix/",
+			},
+			want: true,
+		},
+		{
+			name: "test 4",
+			args: args{
+				p: "//testprefix/",
+			},
+			want: false,
+		},
+		{
+			name: "test 5",
+			args: args{
+				p: "/testprefix/pre",
+			},
+			want: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tr := &ReqRoute{
+				handler:      tt.fields.handler,
+				host:         tt.fields.host,
+				path:         tt.fields.path,
+				prefix:       tt.fields.prefix,
+				active:       tt.fields.active,
+				pathVarsUsed: tt.fields.pathVarsUsed,
+				pathVarNames: tt.fields.pathVarNames,
+				methods:      tt.fields.methods,
+			}
+			if got := tr.chechPrefix(tt.args.p); got != tt.want {
+				t.Errorf("ReqRoute.chechPrefix() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestReqRoute_PathPrefix(t *testing.T) {
+	type fields struct {
+		handler      http.Handler
+		host         string
+		path         string
+		prefix       string
+		active       bool
+		pathVarsUsed bool
+		isPrefix     bool
+		pathVarNames *[]string
+		methods      *[]string
+	}
+	type args struct {
+		px string
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   Route
+	}{
+		// TODO: Add test cases.
+		{
+			name: "test 1",
+			fields: fields{
+				active:   true,
+				isPrefix: true,
+				prefix:   "/testPrefix",
+			},
+			args: args{
+				px: "/testPrefix",
+			},
+			want: &ReqRoute{
+				active:   true,
+				isPrefix: true,
+				prefix:   "/testPrefix",
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tr := &ReqRoute{
+				handler:      tt.fields.handler,
+				host:         tt.fields.host,
+				path:         tt.fields.path,
+				prefix:       tt.fields.prefix,
+				active:       tt.fields.active,
+				pathVarsUsed: tt.fields.pathVarsUsed,
+				isPrefix:     tt.fields.isPrefix,
+				pathVarNames: tt.fields.pathVarNames,
+				methods:      tt.fields.methods,
+			}
+			if got := tr.PathPrefix(tt.args.px); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("ReqRoute.PathPrefix() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestReqRoute_GetPrefix(t *testing.T) {
+	type fields struct {
+		handler      http.Handler
+		host         string
+		path         string
+		prefix       string
+		active       bool
+		pathVarsUsed bool
+		isPrefix     bool
+		pathVarNames *[]string
+		methods      *[]string
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		want   string
+	}{
+		// TODO: Add test cases.
+		{
+			name: "test 1",
+			fields: fields{
+				prefix: "/testPrefix/",
+			},
+			want: "/testPrefix/",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tr := &ReqRoute{
+				handler:      tt.fields.handler,
+				host:         tt.fields.host,
+				path:         tt.fields.path,
+				prefix:       tt.fields.prefix,
+				active:       tt.fields.active,
+				pathVarsUsed: tt.fields.pathVarsUsed,
+				isPrefix:     tt.fields.isPrefix,
+				pathVarNames: tt.fields.pathVarNames,
+				methods:      tt.fields.methods,
+			}
+			if got := tr.GetPrefix(); got != tt.want {
+				t.Errorf("ReqRoute.GetPrefix() = %v, want %v", got, tt.want)
 			}
 		})
 	}

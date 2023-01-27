@@ -16,8 +16,10 @@ type ReqRoute struct {
 	handler      http.Handler
 	host         string
 	path         string
+	prefix       string
 	active       bool
 	pathVarsUsed bool
+	isPrefix     bool
 	pathVarNames *[]string
 	methods      *[]string
 }
@@ -50,6 +52,16 @@ func (t *ReqRoute) Path(p string) Route {
 			t.pathVarsUsed = true
 		}
 		t.active = true
+	}
+	return t
+}
+
+// PathPrefix PathPrefix
+func (t *ReqRoute) PathPrefix(px string) Route {
+	if t.chechPrefix(px) {
+		t.prefix = px
+		t.active = true
+		t.isPrefix = true
 	}
 	return t
 }
@@ -112,6 +124,11 @@ func (t *ReqRoute) GetHandler() http.Handler {
 // GetPath GetPath
 func (t *ReqRoute) GetPath() string {
 	return t.path
+}
+
+// GetPrefix GetPrefix
+func (t *ReqRoute) GetPrefix() string {
+	return t.prefix
 }
 
 // GetVarNames GetVarNames
@@ -199,6 +216,28 @@ func (t *ReqRoute) chechBackSlash(p string) bool {
 			} else if c == bs && i == len(p)-1 {
 				rtn = false
 				t.printError(p, "Backslash not allowed on end of route")
+			}
+		}
+	}
+	return rtn
+}
+
+func (t *ReqRoute) chechPrefix(p string) bool {
+	var rtn = true
+	bs := rune('/')
+	var lastBs int = 0
+	for i, c := range p {
+		if i == 0 && c != bs {
+			rtn = false
+			t.printError(p, "Prefix must have leading backslash")
+			break
+		} else if i != 0 {
+			if c == bs && i == lastBs+1 {
+				rtn = false
+				t.printError(p, "Misplaced backslash")
+				break
+			} else if c == bs && i != len(p)-1 {
+				lastBs = i
 			}
 		}
 	}

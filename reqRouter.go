@@ -19,18 +19,26 @@ const (
 
 // ReqRouter RequestRouter
 type ReqRouter struct {
-	namedRoutes map[string]*[]Route
+	namedRoutes  map[string]*[]Route
+	prefixRoutes map[string]Route
+	corsEnabled  bool
 }
 
 // ServeHTTP ServeHTTP dispatches the handler registered in the matched route.
 func (t ReqRouter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// When there is a match, the route variables can be retrieved calling
 	// mux.Vars(request).
+
 	path := r.URL.Path
-	rt, fvars := t.findRouteAndVars(path)
-	if len(*fvars) > 0 {
-		r = t.requestWithVars(r, rt.GetVarNames(), fvars)
-	}
+	var rt = t.findPrefix(path)
+	if rt == nil {
+		frt, fvars := t.findRouteAndVars(path)
+		rt = frt
+		if len(*fvars) > 0 {
+			r = t.requestWithVars(r, rt.GetVarNames(), fvars)
+			// rt = frt
+		}
+	}	
 	if rt == nil || !rt.IsActive() {
 		w.WriteHeader(http.StatusNotFound)
 	} else if !rt.IsMethodAllowed(r.Method) {
@@ -41,15 +49,69 @@ func (t ReqRouter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (t ReqRouter) requestWithVars(r *http.Request, pVarNames, pvars *[]string) *http.Request {
-	var vars = make(map[string]string)
-	if len(*pVarNames) == len(*pvars) {
-		for i, n := range *pVarNames {
-			vars[n] = (*pvars)[i]
+// NewRoute NewRoute
+func (t ReqRouter) NewRoute() Route {
+	var rt ReqRoute
+	rrt := rt.New()
+	return rrt
+}
+
+// Handle Handle
+func (t ReqRouter) Handle(path string, handler http.Handler) Route {
+	rt := t.NewRoute().Path(path).Handler(handler)
+	fts := t.namedRoutes[rt.GetPath()]
+	if fts == nil {
+		t.namedRoutes[rt.GetPath()] = &[]Route{rt}
+	} else {
+		var addRt = true
+		for _, rtf := range *fts {
+			if rt.GetPathVarsCount() == rtf.GetPathVarsCount() {
+				addRt = false
+				log.Println("Path not added to route, it already exists:", path)
+			}
+		}
+		if addRt {
+			*fts = append(*fts, rt)
 		}
 	}
-	ctx := context.WithValue(r.Context(), varsKey, vars)
-	return r.WithContext(ctx)
+	return rt
+}
+
+// HandleFunc HandleFunc
+func (t ReqRouter) HandleFunc(path string, f func(http.ResponseWriter, *http.Request)) Route {
+	rt := t.NewRoute().Path(path).HandlerFunc(f)
+	fts := t.namedRoutes[rt.GetPath()]
+	if fts == nil {
+		t.namedRoutes[rt.GetPath()] = &[]Route{rt}
+	} else {
+		var addRt = true
+		for _, rtf := range *fts {
+			if rt.GetPathVarsCount() == rtf.GetPathVarsCount() {
+				addRt = false
+				log.Println("Path not added to route, it already exists:", path)
+			}
+		}
+		if addRt {
+			*fts = append(*fts, rt)
+		}
+	}
+	return rt
+}
+
+// PathPrefix PathPrefix
+func (t ReqRouter) PathPrefix(px string) Route {
+	rt := t.NewRoute().PathPrefix(px)
+	fts := t.prefixRoutes[rt.GetPrefix()]
+	if fts == nil {
+		t.prefixRoutes[px] = rt
+	}
+	return rt
+}
+
+func (t ReqRouter) findPrefix(px string) Route {
+	var rtn Route
+	rtn = t.prefixRoutes[px]
+	return rtn
 }
 
 func (t ReqRouter) findRouteAndVars(path string) (Route, *[]string) {
@@ -84,30 +146,13 @@ func (t ReqRouter) findRouteAndVars(path string) (Route, *[]string) {
 	return rnt, &vars
 }
 
-// NewRoute NewRoute
-func (t ReqRouter) NewRoute() Route {
-	var rt ReqRoute
-	rrt := rt.New()
-	return rrt
-}
-
-// HandleFunc HandleFunc
-func (t ReqRouter) HandleFunc(path string, f func(http.ResponseWriter, *http.Request)) Route {
-	rt := t.NewRoute().Path(path).HandlerFunc(f)
-	fts := t.namedRoutes[rt.GetPath()]
-	if fts == nil {
-		t.namedRoutes[rt.GetPath()] = &[]Route{rt}
-	} else {
-		var addRt = true
-		for _, rtf := range *fts {
-			if rt.GetPathVarsCount() == rtf.GetPathVarsCount() {
-				addRt = false
-			}
+func (t ReqRouter) requestWithVars(r *http.Request, pVarNames, pvars *[]string) *http.Request {
+	var vars = make(map[string]string)
+	if len(*pVarNames) == len(*pvars) {
+		for i, n := range *pVarNames {
+			vars[n] = (*pvars)[i]
 		}
-		if addRt {
-			*fts = append(*fts, rt)
-		}
-
 	}
-	return rt
+	ctx := context.WithValue(r.Context(), varsKey, vars)
+	return r.WithContext(ctx)
 }
