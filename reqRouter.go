@@ -108,6 +108,11 @@ func (t ReqRouter) PathPrefix(px string) Route {
 	return rt
 }
 
+// EnableCORS EnableCORS
+func (t ReqRouter) EnableCORS() {
+	t.corsEnabled = true
+}
+
 func (t ReqRouter) findPrefix(px string) Route {
 	var rtn Route
 	rtn = t.prefixRoutes[px]
