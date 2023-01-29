@@ -740,3 +740,168 @@ func TestReqRouter_findPrefix(t *testing.T) {
 		})
 	}
 }
+
+func TestReqRouter_SetAllowedHeaders(t *testing.T) {
+	type fields struct {
+		namedRoutes    map[string]*[]Route
+		prefixRoutes   map[string]Route
+		corsEnabled    bool
+		allowedHeaders []string
+		allowedOrigins []string
+		allowedMethods []string
+	}
+	type args struct {
+		headers []string
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+	}{
+		// TODO: Add test cases.
+		{
+			name: "test 1",
+			fields: fields{
+				allowedHeaders: []string{"Content-Type"},
+			},
+			args: args{
+				headers: []string{"Content-Type", ""},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tr := ReqRouter{
+				namedRoutes:    tt.fields.namedRoutes,
+				prefixRoutes:   tt.fields.prefixRoutes,
+				corsEnabled:    tt.fields.corsEnabled,
+				allowedHeaders: tt.fields.allowedHeaders,
+				allowedOrigins: tt.fields.allowedOrigins,
+				allowedMethods: tt.fields.allowedMethods,
+			}
+			tr.SetAllowedHeaders(tt.args.headers)
+		})
+	}
+}
+
+func TestReqRouter_EnableCORS(t *testing.T) {
+	type fields struct {
+		namedRoutes    map[string]*[]Route
+		prefixRoutes   map[string]Route
+		corsEnabled    bool
+		allowedHeaders []string
+		allowedOrigins []string
+		allowedMethods []string
+	}
+	tests := []struct {
+		name   string
+		fields fields
+	}{
+		// TODO: Add test cases.
+		{
+			name: "test 1",
+			fields: fields{
+				corsEnabled: true,
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tr := ReqRouter{
+				namedRoutes:    tt.fields.namedRoutes,
+				prefixRoutes:   tt.fields.prefixRoutes,
+				corsEnabled:    tt.fields.corsEnabled,
+				allowedHeaders: tt.fields.allowedHeaders,
+				allowedOrigins: tt.fields.allowedOrigins,
+				allowedMethods: tt.fields.allowedMethods,
+			}
+			tr.EnableCORS()
+		})
+	}
+}
+
+func TestReqRouter_AllowedOrigins(t *testing.T) {
+	type fields struct {
+		namedRoutes    map[string]*[]Route
+		prefixRoutes   map[string]Route
+		corsEnabled    bool
+		allowedHeaders []string
+		allowedOrigins []string
+		allowedMethods []string
+	}
+	type args struct {
+		origins []string
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+	}{
+		// TODO: Add test cases.
+		{
+			name: "test 1",
+			fields: fields{
+				allowedOrigins: []string{"test"},
+			},
+			args: args{
+				origins: []string{"*"},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tr := ReqRouter{
+				namedRoutes:    tt.fields.namedRoutes,
+				prefixRoutes:   tt.fields.prefixRoutes,
+				corsEnabled:    tt.fields.corsEnabled,
+				allowedHeaders: tt.fields.allowedHeaders,
+				allowedOrigins: tt.fields.allowedOrigins,
+				allowedMethods: tt.fields.allowedMethods,
+			}
+			tr.AllowedOrigins(tt.args.origins)
+		})
+	}
+}
+
+func TestReqRouter_AllowedMethods(t *testing.T) {
+	type fields struct {
+		namedRoutes    map[string]*[]Route
+		prefixRoutes   map[string]Route
+		corsEnabled    bool
+		allowedHeaders []string
+		allowedOrigins []string
+		allowedMethods []string
+	}
+	type args struct {
+		methods []string
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+	}{
+		// TODO: Add test cases.
+		{
+			name: "test 1",
+			fields: fields{
+				allowedMethods: []string{},
+			},
+			args: args{
+				methods: []string{"POST", ""},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tr := ReqRouter{
+				namedRoutes:    tt.fields.namedRoutes,
+				prefixRoutes:   tt.fields.prefixRoutes,
+				corsEnabled:    tt.fields.corsEnabled,
+				allowedHeaders: tt.fields.allowedHeaders,
+				allowedOrigins: tt.fields.allowedOrigins,
+				allowedMethods: tt.fields.allowedMethods,
+			}
+			tr.AllowedMethods(tt.args.methods)
+		})
+	}
+}

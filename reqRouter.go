@@ -19,9 +19,12 @@ const (
 
 // ReqRouter RequestRouter
 type ReqRouter struct {
-	namedRoutes  map[string]*[]Route
-	prefixRoutes map[string]Route
-	corsEnabled  bool
+	namedRoutes    map[string]*[]Route
+	prefixRoutes   map[string]Route
+	corsEnabled    bool
+	allowedHeaders []string
+	allowedOrigins []string
+	allowedMethods []string
 }
 
 // ServeHTTP ServeHTTP dispatches the handler registered in the matched route.
@@ -111,6 +114,33 @@ func (t ReqRouter) PathPrefix(px string) Route {
 // EnableCORS EnableCORS
 func (t ReqRouter) EnableCORS() {
 	t.corsEnabled = true
+}
+
+// SetAllowedHeaders SetAllowedHeaders
+func (t ReqRouter) SetAllowedHeaders(headers []string) {
+	for _, v := range headers {
+		nHeader := http.CanonicalHeaderKey(strings.TrimSpace(v))
+		if nHeader == "" {
+			continue
+		}
+		t.allowedHeaders = append(t.allowedHeaders, nHeader)
+	}
+}
+
+// AllowedOrigins AllowedOrigins
+func (t ReqRouter) AllowedOrigins(origins []string) {
+	t.allowedOrigins = origins
+}
+
+// AllowedMethods AllowedMethods
+func (t ReqRouter) AllowedMethods(methods []string) {
+	for _, v := range methods {
+		nMethod := strings.ToUpper(strings.TrimSpace(v))
+		if nMethod == "" {
+			continue
+		}
+		t.allowedMethods = append(t.allowedMethods, nMethod)
+	}
 }
 
 func (t ReqRouter) findPrefix(px string) Route {
