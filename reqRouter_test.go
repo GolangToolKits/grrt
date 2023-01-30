@@ -242,6 +242,7 @@ func TestReqRouter_ServeHTTP(t *testing.T) {
 	tw4 := httptest.NewRecorder()
 	tw5 := httptest.NewRecorder()
 	tw6 := httptest.NewRecorder()
+	tw7 := httptest.NewRecorder()
 
 	tr, _ := http.NewRequest("POST", "/test/test1", nil)
 	tr22, _ := http.NewRequest("GET", "/test/test1/p1/p2", nil)
@@ -249,6 +250,7 @@ func TestReqRouter_ServeHTTP(t *testing.T) {
 	tr3, _ := http.NewRequest("PUT", "/test/test1", nil)
 	tr4, _ := http.NewRequest("POST", "/test/test1/param1/param2", nil)
 	tr6, _ := http.NewRequest("POST", "/testPrefix/", nil)
+	tr7, _ := http.NewRequest("OPTIONS", "/testPrefix/", nil)
 	// var prt []Route
 	// prt = append(prt, &rt)
 	// rts[rt.path] = &prt
@@ -327,12 +329,21 @@ func TestReqRouter_ServeHTTP(t *testing.T) {
 				r: tr6,
 			},
 		},
+		{
+			name: "cors test",
+			args: args{
+				w: tw7,
+				r: tr7,
+			},
+
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			tr := ReqRouter{
 				namedRoutes:  tt.fields.namedRoutes,
 				prefixRoutes: tt.fields.prefixRoutes,
+				corsEnabled: true,
 			}
 			tr.ServeHTTP(tt.args.w, tt.args.r)
 			if tt.name == "test 1" && tw.Code != http.StatusOK {
@@ -351,6 +362,9 @@ func TestReqRouter_ServeHTTP(t *testing.T) {
 				t.Fail()
 			}
 			if tt.name == "test 6 prefix" && tw6.Code != http.StatusOK {
+				t.Fail()
+			}
+			if tt.name == "cors test" && tw7.Code != http.StatusOK {
 				t.Fail()
 			}
 		})
@@ -902,6 +916,66 @@ func TestReqRouter_AllowedMethods(t *testing.T) {
 				allowedMethods: tt.fields.allowedMethods,
 			}
 			tr.AllowedMethods(tt.args.methods)
+		})
+	}
+}
+
+func TestReqRouter_handleCors(t *testing.T) {
+	tw := httptest.NewRecorder()
+	type fields struct {
+		namedRoutes    map[string]*[]Route
+		prefixRoutes   map[string]Route
+		corsEnabled    bool
+		allowedHeaders []string
+		allowedOrigins []string
+		allowedMethods []string
+	}
+	type args struct {
+		w http.ResponseWriter
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+	}{
+		// TODO: Add test cases.
+		{
+			name: "test 1",
+			fields: fields{
+				allowedHeaders: []string{"Content-Type"},
+				allowedOrigins: []string{"test"},
+				allowedMethods: []string{"POST", "GET"},
+			},
+			args: args{
+				w: tw,
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tr := ReqRouter{
+				namedRoutes:    tt.fields.namedRoutes,
+				prefixRoutes:   tt.fields.prefixRoutes,
+				corsEnabled:    tt.fields.corsEnabled,
+				allowedHeaders: tt.fields.allowedHeaders,
+				allowedOrigins: tt.fields.allowedOrigins,
+				allowedMethods: tt.fields.allowedMethods,
+			}
+			
+			tr.handleCors(tt.args.w)
+			fmt.Println("headers: ", tw.Header().Get("Access-Control-Allow-Headers"))
+			if tw.Result().StatusCode != http.StatusOK{
+				t.Fail()
+			}
+			if tw.Header().Get("Access-Control-Allow-Headers") != "Content-Type"{
+				t.Fail()
+			}
+			if tw.Header().Get("Access-Control-Allow-Origin") != "test"{
+				t.Fail()
+			}
+			if tw.Header().Get("Access-Control-Allow-Methods") != "POST,GET"{
+				t.Fail()
+			}
 		})
 	}
 }

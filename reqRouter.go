@@ -14,7 +14,10 @@ import (
 type contextKey int
 
 const (
-	varsKey contextKey = iota
+	varsKey                contextKey = iota
+	corsAllowOriginHeader  string     = "Access-Control-Allow-Origin"
+	corsAllowHeadersHeader string     = "Access-Control-Allow-Headers"
+	corsAllowMethodsHeader string     = "Access-Control-Allow-Methods"
 )
 
 // ReqRouter RequestRouter
@@ -31,6 +34,10 @@ type ReqRouter struct {
 func (t ReqRouter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// When there is a match, the route variables can be retrieved calling
 	// mux.Vars(request).
+
+	if t.corsEnabled && r.Method == http.MethodOptions {
+		t.handleCors(w)
+	}
 
 	path := r.URL.Path
 	var rt = t.findPrefix(path)
@@ -141,6 +148,13 @@ func (t ReqRouter) AllowedMethods(methods []string) {
 		}
 		t.allowedMethods = append(t.allowedMethods, nMethod)
 	}
+}
+
+func (t ReqRouter) handleCors(w http.ResponseWriter) {
+	w.Header().Set(corsAllowOriginHeader, strings.Join(t.allowedOrigins, ","))
+	w.Header().Set(corsAllowHeadersHeader, strings.Join(t.allowedHeaders, ","))
+	w.Header().Set(corsAllowMethodsHeader, strings.Join(t.allowedMethods, ","))
+	w.WriteHeader(http.StatusOK)
 }
 
 func (t ReqRouter) findPrefix(px string) Route {
