@@ -6,6 +6,7 @@ package grrt
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"strings"
@@ -35,7 +36,11 @@ func (t ReqRouter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// When there is a match, the route variables can be retrieved calling
 	// mux.Vars(request).
 
+	fmt.Println("cors enabled: :", t.corsEnabled)
+	fmt.Println("cors method: :", r.Method)
+
 	if t.corsEnabled && r.Method == http.MethodOptions {
+		fmt.Println("inside if ------")
 		t.handleCors(w)
 	} else {
 		path := r.URL.Path
@@ -176,6 +181,7 @@ func (t ReqRouter) SetCorsAllowedMethods(mths string) {
 }
 
 func (t ReqRouter) handleCors(w http.ResponseWriter) {
+	fmt.Println("inside handleCors ------")
 	w.Header().Set(corsAllowOriginHeader, strings.Join(t.allowedOrigins, ","))
 	w.Header().Set(corsAllowHeadersHeader, strings.Join(t.allowedHeaders, ","))
 	w.Header().Set(corsAllowMethodsHeader, strings.Join(t.allowedMethods, ","))
