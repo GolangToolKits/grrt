@@ -16,9 +16,9 @@ type Router interface {
 
 	//CORS methods
 	EnableCORS()
-	SetAllowedHeaders(headers []string)
-	AllowedOrigins(origins []string)
-	AllowedMethods(methods []string)
+	SetCorsAllowedHeaders(headers string)
+	SetCorsAllowedOrigins(origins string)
+	SetCorsAllowedMethods(methods string)
 }
 
 // NewRouter NewRouter creates new Router

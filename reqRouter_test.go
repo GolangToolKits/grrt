@@ -335,7 +335,6 @@ func TestReqRouter_ServeHTTP(t *testing.T) {
 				w: tw7,
 				r: tr7,
 			},
-
 		},
 	}
 	for _, tt := range tests {
@@ -343,7 +342,7 @@ func TestReqRouter_ServeHTTP(t *testing.T) {
 			tr := ReqRouter{
 				namedRoutes:  tt.fields.namedRoutes,
 				prefixRoutes: tt.fields.prefixRoutes,
-				corsEnabled: true,
+				corsEnabled:  true,
 			}
 			tr.ServeHTTP(tt.args.w, tt.args.r)
 			if tt.name == "test 1" && tw.Code != http.StatusOK {
@@ -765,7 +764,7 @@ func TestReqRouter_SetAllowedHeaders(t *testing.T) {
 		allowedMethods []string
 	}
 	type args struct {
-		headers []string
+		headers string
 	}
 	tests := []struct {
 		name   string
@@ -776,10 +775,10 @@ func TestReqRouter_SetAllowedHeaders(t *testing.T) {
 		{
 			name: "test 1",
 			fields: fields{
-				allowedHeaders: []string{"Content-Type"},
+				allowedHeaders: []string{"Content-Type", "api-key"},
 			},
 			args: args{
-				headers: []string{"Content-Type", ""},
+				headers: "Content-Type, api-key, ",
 			},
 		},
 	}
@@ -793,7 +792,13 @@ func TestReqRouter_SetAllowedHeaders(t *testing.T) {
 				allowedOrigins: tt.fields.allowedOrigins,
 				allowedMethods: tt.fields.allowedMethods,
 			}
-			tr.SetAllowedHeaders(tt.args.headers)
+			tr.SetCorsAllowedHeaders(tt.args.headers)
+			if tr.allowedHeaders[0] != "Content-Type" {
+				t.Fail()
+			}
+			if tr.allowedHeaders[1] != "api-key" {
+				t.Fail()
+			}
 		})
 	}
 }
@@ -844,7 +849,7 @@ func TestReqRouter_AllowedOrigins(t *testing.T) {
 		allowedMethods []string
 	}
 	type args struct {
-		origins []string
+		origins string
 	}
 	tests := []struct {
 		name   string
@@ -855,10 +860,10 @@ func TestReqRouter_AllowedOrigins(t *testing.T) {
 		{
 			name: "test 1",
 			fields: fields{
-				allowedOrigins: []string{"test"},
+				allowedOrigins: []string{"*", "test"},
 			},
 			args: args{
-				origins: []string{"*"},
+				origins: "*,   test",
 			},
 		},
 	}
@@ -872,7 +877,13 @@ func TestReqRouter_AllowedOrigins(t *testing.T) {
 				allowedOrigins: tt.fields.allowedOrigins,
 				allowedMethods: tt.fields.allowedMethods,
 			}
-			tr.AllowedOrigins(tt.args.origins)
+			tr.SetCorsAllowedOrigins(tt.args.origins)
+			if tr.allowedOrigins[0] != "*" {
+				t.Fail()
+			}
+			if tr.allowedOrigins[1] != "test" {
+				t.Fail()
+			}
 		})
 	}
 }
@@ -887,7 +898,7 @@ func TestReqRouter_AllowedMethods(t *testing.T) {
 		allowedMethods []string
 	}
 	type args struct {
-		methods []string
+		methods string
 	}
 	tests := []struct {
 		name   string
@@ -898,10 +909,10 @@ func TestReqRouter_AllowedMethods(t *testing.T) {
 		{
 			name: "test 1",
 			fields: fields{
-				allowedMethods: []string{},
+				allowedMethods: []string{"POST"},
 			},
 			args: args{
-				methods: []string{"POST", ""},
+				methods: "POST,   ",
 			},
 		},
 	}
@@ -915,7 +926,10 @@ func TestReqRouter_AllowedMethods(t *testing.T) {
 				allowedOrigins: tt.fields.allowedOrigins,
 				allowedMethods: tt.fields.allowedMethods,
 			}
-			tr.AllowedMethods(tt.args.methods)
+			tr.SetCorsAllowedMethods(tt.args.methods)
+			if tr.allowedMethods[0] != "POST" {
+				t.Fail()
+			}
 		})
 	}
 }
@@ -961,19 +975,19 @@ func TestReqRouter_handleCors(t *testing.T) {
 				allowedOrigins: tt.fields.allowedOrigins,
 				allowedMethods: tt.fields.allowedMethods,
 			}
-			
+
 			tr.handleCors(tt.args.w)
 			fmt.Println("headers: ", tw.Header().Get("Access-Control-Allow-Headers"))
-			if tw.Result().StatusCode != http.StatusOK{
+			if tw.Result().StatusCode != http.StatusOK {
 				t.Fail()
 			}
-			if tw.Header().Get("Access-Control-Allow-Headers") != "Content-Type"{
+			if tw.Header().Get("Access-Control-Allow-Headers") != "Content-Type" {
 				t.Fail()
 			}
-			if tw.Header().Get("Access-Control-Allow-Origin") != "test"{
+			if tw.Header().Get("Access-Control-Allow-Origin") != "test" {
 				t.Fail()
 			}
-			if tw.Header().Get("Access-Control-Allow-Methods") != "POST,GET"{
+			if tw.Header().Get("Access-Control-Allow-Methods") != "POST,GET" {
 				t.Fail()
 			}
 		})

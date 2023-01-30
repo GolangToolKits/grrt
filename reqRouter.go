@@ -37,26 +37,45 @@ func (t ReqRouter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	if t.corsEnabled && r.Method == http.MethodOptions {
 		t.handleCors(w)
-	}
-
-	path := r.URL.Path
-	var rt = t.findPrefix(path)
-	if rt == nil {
-		frt, fvars := t.findRouteAndVars(path)
-		rt = frt
-		if len(*fvars) > 0 {
-			r = t.requestWithVars(r, rt.GetVarNames(), fvars)
-			// rt = frt
+	} else {
+		path := r.URL.Path
+		var rt = t.findPrefix(path)
+		if rt == nil {
+			frt, fvars := t.findRouteAndVars(path)
+			rt = frt
+			if len(*fvars) > 0 {
+				r = t.requestWithVars(r, rt.GetVarNames(), fvars)
+				// rt = frt
+			}
+		}
+		if rt == nil || !rt.IsActive() {
+			w.WriteHeader(http.StatusNotFound)
+		} else if !rt.IsMethodAllowed(r.Method) {
+			w.WriteHeader(http.StatusMethodNotAllowed)
+		} else {
+			hd := rt.GetHandler()
+			hd.ServeHTTP(w, r)
 		}
 	}
-	if rt == nil || !rt.IsActive() {
-		w.WriteHeader(http.StatusNotFound)
-	} else if !rt.IsMethodAllowed(r.Method) {
-		w.WriteHeader(http.StatusMethodNotAllowed)
-	} else {
-		hd := rt.GetHandler()
-		hd.ServeHTTP(w, r)
-	}
+
+	// path := r.URL.Path
+	// var rt = t.findPrefix(path)
+	// if rt == nil {
+	// 	frt, fvars := t.findRouteAndVars(path)
+	// 	rt = frt
+	// 	if len(*fvars) > 0 {
+	// 		r = t.requestWithVars(r, rt.GetVarNames(), fvars)
+	// 		// rt = frt
+	// 	}
+	// }
+	// if rt == nil || !rt.IsActive() {
+	// 	w.WriteHeader(http.StatusNotFound)
+	// } else if !rt.IsMethodAllowed(r.Method) {
+	// 	w.WriteHeader(http.StatusMethodNotAllowed)
+	// } else {
+	// 	hd := rt.GetHandler()
+	// 	hd.ServeHTTP(w, r)
+	// }
 }
 
 // NewRoute NewRoute
@@ -123,8 +142,10 @@ func (t ReqRouter) EnableCORS() {
 	t.corsEnabled = true
 }
 
-// SetAllowedHeaders SetAllowedHeaders
-func (t ReqRouter) SetAllowedHeaders(headers []string) {
+// SetCorsAllowedHeaders SetAllowedHeaders
+func (t ReqRouter) SetCorsAllowedHeaders(hdr string) {
+	hdr = strings.ReplaceAll(hdr, " ", "")
+	headers := strings.Split(hdr, ",")
 	for _, v := range headers {
 		nHeader := http.CanonicalHeaderKey(strings.TrimSpace(v))
 		if nHeader == "" {
@@ -134,13 +155,17 @@ func (t ReqRouter) SetAllowedHeaders(headers []string) {
 	}
 }
 
-// AllowedOrigins AllowedOrigins
-func (t ReqRouter) AllowedOrigins(origins []string) {
+// SetCorsAllowedOrigins AllowedOrigins
+func (t ReqRouter) SetCorsAllowedOrigins(org string) {
+	org = strings.ReplaceAll(org, " ", "")
+	var origins = strings.Split(org, ",")
 	t.allowedOrigins = origins
 }
 
-// AllowedMethods AllowedMethods
-func (t ReqRouter) AllowedMethods(methods []string) {
+// SetCorsAllowedMethods AllowedMethods
+func (t ReqRouter) SetCorsAllowedMethods(mths string) {
+	mths = strings.ReplaceAll(mths, " ", "")
+	var methods = strings.Split(mths, ",")
 	for _, v := range methods {
 		nMethod := strings.ToUpper(strings.TrimSpace(v))
 		if nMethod == "" {
@@ -168,7 +193,7 @@ func (t ReqRouter) findRouteAndVars(path string) (Route, *[]string) {
 	sp := strings.Split(path, "/")
 	var vars []string
 	var vcnt = len(sp) - 2
-	log.Println("sp:", sp)
+	//log.Println("sp:", sp)
 	var found = false
 	var searchPath = ""
 	for i, p := range sp {
