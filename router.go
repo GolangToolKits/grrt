@@ -4,7 +4,10 @@ package grrt
 // Use of this source code is governed by the MIT License
 // that can be found in the LICENSE file.
 
-import "net/http"
+import (
+	"context"
+	"net/http"
+)
 
 // Router Router
 type Router interface {
@@ -35,6 +38,12 @@ func Vars(r *http.Request) map[string]string {
 		rtn = rv.(map[string]string)
 	}
 	return rtn
+}
+
+// SetURLVars SetURLVars
+func SetURLVars(r *http.Request, vars map[string]string) *http.Request {
+	ctxi := context.WithValue(r.Context(), varsKey, vars)
+	return r.WithContext(ctxi)
 }
 
 // go mod init github.com/GolangToolKits/grrt

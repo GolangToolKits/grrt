@@ -1034,7 +1034,7 @@ func TestReqRouter_CORSAllowCredentials(t *testing.T) {
 				allowedMethods:       tt.fields.allowedMethods,
 			}
 			tr.CORSAllowCredentials()
-			if tr.corsAllowCredentials != true{
+			if tr.corsAllowCredentials != true {
 				t.Fail()
 			}
 		})

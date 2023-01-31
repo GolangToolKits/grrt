@@ -65,3 +65,39 @@ func TestVars(t *testing.T) {
 		})
 	}
 }
+
+func TestSetURLVars(t *testing.T) {
+	tr, _ := http.NewRequest("GET", "/test/test1/p1/p2", nil)
+	vars := make(map[string]string)
+	vars["param1"] = "test1"
+	vars["param2"] = "test2"
+	type args struct {
+		r    *http.Request
+		vars map[string]string
+	}
+	tests := []struct {
+		name string
+		args args
+		want *http.Request
+	}{
+		// TODO: Add test cases.
+		{
+			name: "test 1",
+			args: args{
+				r:    tr,
+				vars: vars,
+			},
+			want: tr,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+
+			got := SetURLVars(tt.args.r, tt.args.vars)
+			fvars := Vars(got)
+			if fvars["param1"] != "test1" || fvars["param2"] != "test2" {
+				t.Fail()
+			}
+		})
+	}
+}
