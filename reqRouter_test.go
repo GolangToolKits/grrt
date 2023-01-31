@@ -987,7 +987,7 @@ func TestReqRouter_handleCors(t *testing.T) {
 			if tw.Header().Get("Access-Control-Allow-Origin") != "test" {
 				t.Fail()
 			}
-			if tw.Header().Get("Access-Control-Allow-Methods") != "POST,GET" {
+			if tw.Header().Get("Access-Control-Allow-Methods") != "POST, GET" {
 				t.Fail()
 			}
 		})

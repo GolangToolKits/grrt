@@ -1,8 +1,4 @@
 mode: set
-github.com/GolangToolKits/grrt/router.go:25.25,28.2 2 1
-github.com/GolangToolKits/grrt/router.go:31.46,33.49 2 1
-github.com/GolangToolKits/grrt/router.go:36.2,36.12 1 1
-github.com/GolangToolKits/grrt/router.go:33.49,35.3 1 1
 github.com/GolangToolKits/grrt/reqRoute.go:28.32,32.2 3 1
 github.com/GolangToolKits/grrt/reqRoute.go:35.56,36.14 1 1
 github.com/GolangToolKits/grrt/reqRoute.go:39.2,39.10 1 1
@@ -149,3 +145,7 @@ github.com/GolangToolKits/grrt/reqRouter.go:229.96,231.36 2 1
 github.com/GolangToolKits/grrt/reqRouter.go:236.2,237.27 2 1
 github.com/GolangToolKits/grrt/reqRouter.go:231.36,232.32 1 1
 github.com/GolangToolKits/grrt/reqRouter.go:232.32,234.4 1 1
+github.com/GolangToolKits/grrt/router.go:25.25,28.2 2 1
+github.com/GolangToolKits/grrt/router.go:31.46,33.49 2 1
+github.com/GolangToolKits/grrt/router.go:36.2,36.12 1 1
+github.com/GolangToolKits/grrt/router.go:33.49,35.3 1 1

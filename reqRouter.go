@@ -182,9 +182,9 @@ func (t *ReqRouter) SetCorsAllowedMethods(mths string) {
 
 func (t *ReqRouter) handleCors(w http.ResponseWriter) {
 	fmt.Println("inside handleCors ------")
-	w.Header().Set(corsAllowOriginHeader, strings.Join(t.allowedOrigins, ","))
-	w.Header().Set(corsAllowHeadersHeader, strings.Join(t.allowedHeaders, ","))
-	w.Header().Set(corsAllowMethodsHeader, strings.Join(t.allowedMethods, ","))
+	w.Header().Set(corsAllowOriginHeader, strings.Join(t.allowedOrigins, ", "))
+	w.Header().Set(corsAllowHeadersHeader, strings.Join(t.allowedHeaders, ", "))
+	w.Header().Set(corsAllowMethodsHeader, strings.Join(t.allowedMethods, ", "))
 	w.WriteHeader(http.StatusOK)
 }
 
