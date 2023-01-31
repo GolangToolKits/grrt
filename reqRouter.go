@@ -6,7 +6,6 @@ package grrt
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"net/http"
 	"strings"
@@ -38,11 +37,7 @@ func (t *ReqRouter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// When there is a match, the route variables can be retrieved calling
 	// mux.Vars(request).
 
-	fmt.Println("cors enabled: :", t.corsEnabled)
-	fmt.Println("cors method: :", r.Method)
-
 	if t.corsEnabled && r.Method == http.MethodOptions {
-		fmt.Println("inside if ------")
 		t.handleCors(w)
 	} else {
 		path := r.URL.Path
@@ -64,25 +59,6 @@ func (t *ReqRouter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			hd.ServeHTTP(w, r)
 		}
 	}
-
-	// path := r.URL.Path
-	// var rt = t.findPrefix(path)
-	// if rt == nil {
-	// 	frt, fvars := t.findRouteAndVars(path)
-	// 	rt = frt
-	// 	if len(*fvars) > 0 {
-	// 		r = t.requestWithVars(r, rt.GetVarNames(), fvars)
-	// 		// rt = frt
-	// 	}
-	// }
-	// if rt == nil || !rt.IsActive() {
-	// 	w.WriteHeader(http.StatusNotFound)
-	// } else if !rt.IsMethodAllowed(r.Method) {
-	// 	w.WriteHeader(http.StatusMethodNotAllowed)
-	// } else {
-	// 	hd := rt.GetHandler()
-	// 	hd.ServeHTTP(w, r)
-	// }
 }
 
 // NewRoute NewRoute
@@ -188,7 +164,6 @@ func (t *ReqRouter) SetCorsAllowedMethods(mths string) {
 }
 
 func (t *ReqRouter) handleCors(w http.ResponseWriter) {
-	fmt.Println("inside handleCors ------")
 	w.Header().Set(corsAllowOriginHeader, strings.Join(t.allowedOrigins, ", "))
 	w.Header().Set(corsAllowHeadersHeader, strings.Join(t.allowedHeaders, ", "))
 	w.Header().Set(corsAllowMethodsHeader, strings.Join(t.allowedMethods, ", "))
