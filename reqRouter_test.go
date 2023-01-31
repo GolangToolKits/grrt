@@ -937,12 +937,13 @@ func TestReqRouter_AllowedMethods(t *testing.T) {
 func TestReqRouter_handleCors(t *testing.T) {
 	tw := httptest.NewRecorder()
 	type fields struct {
-		namedRoutes    map[string]*[]Route
-		prefixRoutes   map[string]Route
-		corsEnabled    bool
-		allowedHeaders []string
-		allowedOrigins []string
-		allowedMethods []string
+		namedRoutes          map[string]*[]Route
+		prefixRoutes         map[string]Route
+		corsEnabled          bool
+		corsAllowCredentials bool
+		allowedHeaders       []string
+		allowedOrigins       []string
+		allowedMethods       []string
 	}
 	type args struct {
 		w http.ResponseWriter
@@ -956,9 +957,10 @@ func TestReqRouter_handleCors(t *testing.T) {
 		{
 			name: "test 1",
 			fields: fields{
-				allowedHeaders: []string{"Content-Type"},
-				allowedOrigins: []string{"test"},
-				allowedMethods: []string{"POST", "GET"},
+				allowedHeaders:       []string{"Content-Type"},
+				allowedOrigins:       []string{"test"},
+				allowedMethods:       []string{"POST", "GET"},
+				corsAllowCredentials: true,
 			},
 			args: args{
 				w: tw,
@@ -968,12 +970,13 @@ func TestReqRouter_handleCors(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			tr := ReqRouter{
-				namedRoutes:    tt.fields.namedRoutes,
-				prefixRoutes:   tt.fields.prefixRoutes,
-				corsEnabled:    tt.fields.corsEnabled,
-				allowedHeaders: tt.fields.allowedHeaders,
-				allowedOrigins: tt.fields.allowedOrigins,
-				allowedMethods: tt.fields.allowedMethods,
+				namedRoutes:          tt.fields.namedRoutes,
+				prefixRoutes:         tt.fields.prefixRoutes,
+				corsEnabled:          tt.fields.corsEnabled,
+				corsAllowCredentials: tt.fields.corsAllowCredentials,
+				allowedHeaders:       tt.fields.allowedHeaders,
+				allowedOrigins:       tt.fields.allowedOrigins,
+				allowedMethods:       tt.fields.allowedMethods,
 			}
 
 			tr.handleCors(tt.args.w)
@@ -988,6 +991,50 @@ func TestReqRouter_handleCors(t *testing.T) {
 				t.Fail()
 			}
 			if tw.Header().Get("Access-Control-Allow-Methods") != "POST, GET" {
+				t.Fail()
+			}
+			if tw.Header().Get("Access-Control-Allow-Credentials") != "true" {
+				t.Fail()
+			}
+		})
+	}
+}
+
+func TestReqRouter_CORSAllowCredentials(t *testing.T) {
+	type fields struct {
+		namedRoutes          map[string]*[]Route
+		prefixRoutes         map[string]Route
+		corsEnabled          bool
+		corsAllowCredentials bool
+		allowedHeaders       []string
+		allowedOrigins       []string
+		allowedMethods       []string
+	}
+	tests := []struct {
+		name   string
+		fields fields
+	}{
+		// TODO: Add test cases.
+		{
+			name: "test 1",
+			fields: fields{
+				corsAllowCredentials: true,
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tr := &ReqRouter{
+				namedRoutes:          tt.fields.namedRoutes,
+				prefixRoutes:         tt.fields.prefixRoutes,
+				corsEnabled:          tt.fields.corsEnabled,
+				corsAllowCredentials: tt.fields.corsAllowCredentials,
+				allowedHeaders:       tt.fields.allowedHeaders,
+				allowedOrigins:       tt.fields.allowedOrigins,
+				allowedMethods:       tt.fields.allowedMethods,
+			}
+			tr.CORSAllowCredentials()
+			if tr.corsAllowCredentials != true{
 				t.Fail()
 			}
 		})

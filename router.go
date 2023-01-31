@@ -16,6 +16,7 @@ type Router interface {
 
 	//CORS methods
 	EnableCORS()
+	CORSAllowCredentials()
 	SetCorsAllowedHeaders(headers string)
 	SetCorsAllowedOrigins(origins string)
 	SetCorsAllowedMethods(methods string)

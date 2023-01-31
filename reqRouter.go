@@ -15,20 +15,22 @@ import (
 type contextKey int
 
 const (
-	varsKey                contextKey = iota
-	corsAllowOriginHeader  string     = "Access-Control-Allow-Origin"
-	corsAllowHeadersHeader string     = "Access-Control-Allow-Headers"
-	corsAllowMethodsHeader string     = "Access-Control-Allow-Methods"
+	varsKey                    contextKey = iota
+	corsAllowOriginHeader      string     = "Access-Control-Allow-Origin"
+	corsAllowHeadersHeader     string     = "Access-Control-Allow-Headers"
+	corsAllowMethodsHeader     string     = "Access-Control-Allow-Methods"
+	corsAllowCredentialsHeader string     = "Access-Control-Allow-Credentials"
 )
 
 // ReqRouter RequestRouter
 type ReqRouter struct {
-	namedRoutes    map[string]*[]Route
-	prefixRoutes   map[string]Route
-	corsEnabled    bool
-	allowedHeaders []string
-	allowedOrigins []string
-	allowedMethods []string
+	namedRoutes          map[string]*[]Route
+	prefixRoutes         map[string]Route
+	corsEnabled          bool
+	corsAllowCredentials bool
+	allowedHeaders       []string
+	allowedOrigins       []string
+	allowedMethods       []string
 }
 
 // ServeHTTP ServeHTTP dispatches the handler registered in the matched route.
@@ -147,6 +149,11 @@ func (t *ReqRouter) EnableCORS() {
 	t.corsEnabled = true
 }
 
+// CORSAllowCredentials CORSAllowCredentials
+func (t *ReqRouter) CORSAllowCredentials() {
+	t.corsAllowCredentials = true
+}
+
 // SetCorsAllowedHeaders SetAllowedHeaders
 func (t *ReqRouter) SetCorsAllowedHeaders(hdr string) {
 	hdr = strings.ReplaceAll(hdr, " ", "")
@@ -185,6 +192,9 @@ func (t *ReqRouter) handleCors(w http.ResponseWriter) {
 	w.Header().Set(corsAllowOriginHeader, strings.Join(t.allowedOrigins, ", "))
 	w.Header().Set(corsAllowHeadersHeader, strings.Join(t.allowedHeaders, ", "))
 	w.Header().Set(corsAllowMethodsHeader, strings.Join(t.allowedMethods, ", "))
+	if t.corsAllowCredentials {
+		w.Header().Set(corsAllowCredentialsHeader, "true")
+	}
 	w.WriteHeader(http.StatusOK)
 }
 
