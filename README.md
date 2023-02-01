@@ -22,7 +22,7 @@ Package `GolangToolKits/grrt` implements a request router and dispatcher for han
 The name mux stands for "HTTP request multiplexer". Like the standard `http.ServeMux`, `grrt.Router` matches incoming requests against a list of registered routes and calls a handler for the route that matches the URL. The main features are:
 
 * It implements the `http.Handler` interface so it is compatible with the standard `http.ServeMux`.
-* URL hosts, paths and query values can have variables with an optional regular expression.
+* URL hosts, paths and query values can be handled.
 * Path variable can be used instead of query parameters.
 * Method base routing is easy
 * CORS is built in with no need for additional modules.
