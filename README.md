@@ -11,6 +11,8 @@ It has built-in CORS and Method based routing.
 
 ## Features
 
+#### Replaces gorilla/mux with one line of code
+
 - Request Routing
 - Method Based Routing
 - CORS
