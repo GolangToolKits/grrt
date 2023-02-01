@@ -9,6 +9,7 @@ import (
 
 func TestNewRouter(t *testing.T) {
 	var rn = make(map[string]*[]Route)
+	var px = make(map[string]Route)
 	tests := []struct {
 		name string
 		want Router
@@ -18,6 +19,7 @@ func TestNewRouter(t *testing.T) {
 			name: "test 1",
 			want: &ReqRouter{
 				namedRoutes: rn,
+				prefixRoutes: px,
 			},
 		},
 	}
