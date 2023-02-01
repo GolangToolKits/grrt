@@ -49,6 +49,8 @@ go get -u github.com/GolangToolKits/grrt
 
 ## RestExample
 
+#### [REST Service Full Example](https://github.com/GolangToolKits/grrtRouterRestExample)
+
 ```go
 import(
 
