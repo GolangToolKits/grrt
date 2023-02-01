@@ -31,7 +31,8 @@ The name mux stands for "HTTP request multiplexer". Like the standard `http.Serv
 ---
 
 * [Install](#install)
-* [Examples](#examples)
+* [Examples REST Service](#RestExample)
+* [Examples Web Server](#WebExample)
 
 
 ---
@@ -46,7 +47,7 @@ go get -u github.com/GolangToolKits/grrt
 ```
 
 
-## Examples
+## RestExample
 
 ```go
 import(
@@ -85,4 +86,12 @@ func main() {
 	http.ListenAndServe(":"+port, (router))
 
 }
+```
+
+
+## WebExample
+
+```go
+//Comming soon
+
 ```
