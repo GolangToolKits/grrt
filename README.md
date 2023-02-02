@@ -17,9 +17,9 @@ It has built-in CORS and Method based routing.
 - Method Based Routing
 - CORS
 
-#### [REST Service Example](https://github.com/GolangToolKits/grrtRouterRestExample)
+#### [Full REST Service Example Project](https://github.com/GolangToolKits/grrtRouterRestExample)
 
-#### [Web Example](https://github.com/GolangToolKits/grrtRouterWebSiteExample)
+#### [Full Web Example Project](https://github.com/GolangToolKits/grrtRouterWebSiteExample)
 
 Package `GolangToolKits/grrt` implements a request router and dispatcher for handling incoming requests to their associated handler.
 
