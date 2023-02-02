@@ -19,6 +19,8 @@ It has built-in CORS and Method based routing.
 
 #### [REST Service Example](https://github.com/GolangToolKits/grrtRouterRestExample)
 
+#### [Web Example](https://github.com/GolangToolKits/grrtRouterWebSiteExample)
+
 Package `GolangToolKits/grrt` implements a request router and dispatcher for handling incoming requests to their associated handler.
 
 The name mux stands for "HTTP request multiplexer". Like the standard `http.ServeMux`, `grrt.Router` matches incoming requests against a list of registered routes and calls a handler for the route that matches the URL. The main features are:
@@ -103,7 +105,50 @@ func main() {
 
 ## WebExample
 
+#### [Web Full Example](https://github.com/GolangToolKits/grrtRouterWebSiteExample)
+
 ```go
-//Comming soon
+
+import (
+	"fmt"
+	"html/template"
+	"net/http"
+	"os"
+	"strconv"
+
+	mux "github.com/GolangToolKits/grrt"
+	hd "github.com/GolangToolKits/grrtRouterWebSiteExample/handlers"
+)
+
+func main() {
+
+	var sh hd.SiteHandler
+
+	sh.Templates = template.Must(template.ParseFiles("./static/index.html",
+		"./static/product.html", "./static/addProduct.html"))
+
+	router := mux.NewRouter()
+
+	h := sh.New()
+
+	router.HandleFunc("/", h.Index).Methods("GET")
+	router.HandleFunc("/product/{id}/{sku}", h.ViewProduct).Methods("GET")
+	router.HandleFunc("/addProduct", h.AddProduct).Methods("POST")
+
+	port := "8080"
+	envPort := os.Getenv("PORT")
+	if envPort != "" {
+		portInt, _ := strconv.Atoi(envPort)
+		if portInt != 0 {
+			port = envPort
+		}
+	}
+
+	router.PathPrefix("/").Handler(http.FileServer(http.Dir("./static/")))
+
+	fmt.Println("Web UI is running on port 8080!")
+
+	http.ListenAndServe(":"+port, (router))
+}
 
 ```
