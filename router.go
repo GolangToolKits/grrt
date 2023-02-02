@@ -35,7 +35,7 @@ func NewRouter() Router {
 
 // Vars Vars returns the path variables for the current request
 func Vars(r *http.Request) map[string]string {
-	var rtn map[string]string
+	var rtn = make(map[string]string)
 	if rv := r.Context().Value(varsKey); rv != nil {
 		rtn = rv.(map[string]string)
 	}

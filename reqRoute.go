@@ -12,7 +12,6 @@ import (
 
 // ReqRoute ReqRoute
 type ReqRoute struct {
-	//namedRoutes map[string]*Route
 	handler      http.Handler
 	host         string
 	path         string
@@ -172,7 +171,7 @@ func (t *ReqRoute) chechCurlys(p string) bool {
 }
 
 func (t *ReqRoute) chechCurlyPlacement(p string) bool {
-	//checks to make sure there are no {{ of }}
+	//checks to make sure there are no {{ or }} missmatch
 	var rtn = true
 	oc := rune('{')
 	cc := rune('}')

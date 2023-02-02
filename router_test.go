@@ -42,6 +42,9 @@ func TestVars(t *testing.T) {
 	m1["param1"] = "p1"
 	m1["param2"] = "p2"
 
+	tr2, _ := http.NewRequest("GET", "/test/test1/p1/p2", nil)
+	m2 := make(map[string]string)
+
 	type args struct {
 		r *http.Request
 	}
@@ -57,6 +60,13 @@ func TestVars(t *testing.T) {
 				r: tr1,
 			},
 			want: m1,
+		},
+		{
+			name: "test 2",
+			args: args{
+				r: tr2,
+			},
+			want: m2,
 		},
 	}
 	for _, tt := range tests {
