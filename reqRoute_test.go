@@ -39,6 +39,20 @@ func TestReqRoute_chechPath(t *testing.T) {
 			},
 			want: false,
 		},
+		{
+			name: "url match success",
+			args: args{
+				p: "/",
+			},
+			want: true,
+		},
+		{
+			name: "url match success",
+			args: args{
+				p: "/{parm1}",
+			},
+			want: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -222,6 +236,13 @@ func TestReqRoute_chechCurlyPlacement(t *testing.T) {
 			},
 			want: false,
 		},
+		{
+			name: "test 3 fail",
+			args: args{
+				p: "/{parm1}",
+			},
+			want: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -384,6 +405,36 @@ func TestReqRoute_Path(t *testing.T) {
 				active:       false,
 				pathVarsUsed: false,
 				pathVarNames: &[]string{},
+			},
+		},
+		{
+			name: "test 4 ",
+			args: args{
+				p: "/",
+			},
+			fields: fields{
+				pathVarNames: &[]string{},
+			},
+			want: &ReqRoute{
+				path:         "/",
+				active:       true,
+				pathVarsUsed: true,
+				pathVarNames: &[]string{},
+			},
+		},
+		{
+			name: "test 5 ",
+			args: args{
+				p: "/{param1}",
+			},
+			fields: fields{
+				pathVarNames: &[]string{},
+			},
+			want: &ReqRoute{
+				path:         "/",
+				active:       true,
+				pathVarsUsed: true,
+				pathVarNames: &[]string{"param1"},
 			},
 		},
 	}

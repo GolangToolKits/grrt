@@ -57,6 +57,16 @@ func TestReqRouter_HandleFunc(t *testing.T) {
 	}
 	nr2["/route/test1"] = &[]Route{rt2}
 
+	var nr3 = make(map[string]*[]Route)
+	var rt3 = &ReqRoute{
+		path:         "/",
+		active:       true,
+		pathVarsUsed: false,
+		pathVarNames: &[]string{},
+		methods:      &[]string{},
+	}
+	nr3["/"] = &[]Route{rt3}
+
 	type fields struct {
 		namedRoutes map[string]*[]Route
 	}
@@ -65,10 +75,11 @@ func TestReqRouter_HandleFunc(t *testing.T) {
 		f    func(http.ResponseWriter, *http.Request)
 	}
 	tests := []struct {
-		name   string
-		fields fields
-		args   args
-		want   Route
+		name     string
+		fields   fields
+		args     args
+		want     Route
+		wantPath string
 	}{
 		// TODO: Add test cases.
 		{
@@ -87,6 +98,7 @@ func TestReqRouter_HandleFunc(t *testing.T) {
 				pathVarNames: &[]string{},
 				methods:      &[]string{},
 			},
+			wantPath: "/route/test1",
 		},
 		{
 			name: "test 2",
@@ -104,6 +116,7 @@ func TestReqRouter_HandleFunc(t *testing.T) {
 				pathVarNames: &[]string{"name", "cat"},
 				methods:      &[]string{},
 			},
+			wantPath: "/route/test1",
 		},
 		{
 			name: "test 3",
@@ -121,6 +134,43 @@ func TestReqRouter_HandleFunc(t *testing.T) {
 				pathVarNames: &[]string{"name"},
 				methods:      &[]string{},
 			},
+			wantPath: "/route/test1",
+		},
+		{
+			name: "test 4",
+			fields: fields{
+				namedRoutes: nr,
+			},
+			args: args{
+				path: "/",
+				f:    nf,
+			},
+			want: &ReqRoute{
+				path:         "/",
+				active:       true,
+				pathVarsUsed: false,
+				pathVarNames: &[]string{},
+				methods:      &[]string{},
+			},
+			wantPath: "/",
+		},
+		{
+			name: "test 5",
+			fields: fields{
+				namedRoutes: nr3,
+			},
+			args: args{
+				path: "/{name}",
+				f:    nf,
+			},
+			want: &ReqRoute{
+				path:         "/",
+				active:       true,
+				pathVarsUsed: true,
+				pathVarNames: &[]string{"name"},
+				methods:      &[]string{},
+			},
+			wantPath: "/",
 		},
 	}
 	for _, tt := range tests {
@@ -129,7 +179,7 @@ func TestReqRouter_HandleFunc(t *testing.T) {
 				namedRoutes: tt.fields.namedRoutes,
 			}
 			// if got := tr.HandleFunc(tt.args.path, tt.args.f); !reflect.DeepEqual(got, tt.want) {
-			if got := tr.HandleFunc(tt.args.path, tt.args.f); got.GetPath() != "/route/test1" {
+			if got := tr.HandleFunc(tt.args.path, tt.args.f); got.GetPath() != tt.wantPath {
 
 				t.Errorf("ReqRouter.HandleFunc() = %v, want %v", got, tt.want)
 			}
@@ -195,8 +245,9 @@ func TestReqRouter_HandleFuncFullCall(t *testing.T) {
 }
 
 func TestReqRouter_ServeHTTP(t *testing.T) {
-	var nf = func(http.ResponseWriter, *http.Request) {
-
+	var fvars map[string]string
+	var nf = func(wnf http.ResponseWriter, rnf *http.Request) {
+		fvars = Vars(rnf)
 	}
 	var hdl = http.HandlerFunc(nf)
 
@@ -224,6 +275,31 @@ func TestReqRouter_ServeHTTP(t *testing.T) {
 	prt2 = append(prt2, &rt2)
 	rts2[rt2.path] = &prt2
 
+	var rt8 ReqRoute
+	rt8.active = true
+	rt8.path = "/"
+	rt8.handler = hdl
+	rt8.methods = &[]string{"GET"}
+	var rts8 = make(map[string]*[]Route)
+
+	var prt8 []Route
+	prt8 = append(prt8, &rt8)
+	rts8[rt8.path] = &prt8
+
+	var rt88 ReqRoute
+	rt88.active = true
+	rt88.pathVarsUsed = true
+	rt88.path = "/"
+	rt88.handler = hdl
+	rt88.methods = &[]string{"GET"}
+	rt88.pathVarNames = &[]string{"param1"}
+	prt8 = append(prt8, &rt88)
+	rts8[rt88.path] = &prt8
+
+	// var prt8 []Route
+	// prt8 = append(prt8, &rt8)
+	// rts8[rt8.path] = &prt8
+
 	var prrt ReqRoute
 	prrt.active = true
 	prrt.isPrefix = true
@@ -243,14 +319,19 @@ func TestReqRouter_ServeHTTP(t *testing.T) {
 	tw5 := httptest.NewRecorder()
 	tw6 := httptest.NewRecorder()
 	tw7 := httptest.NewRecorder()
+	tw8 := httptest.NewRecorder()
+	tw9 := httptest.NewRecorder()
 
 	tr, _ := http.NewRequest("POST", "/test/test1", nil)
 	tr22, _ := http.NewRequest("GET", "/test/test1/p1/p2", nil)
 	tr2, _ := http.NewRequest("POST", "/test/te", nil)
 	tr3, _ := http.NewRequest("PUT", "/test/test1", nil)
-	tr4, _ := http.NewRequest("POST", "/test/test1/param1/param2", nil)
+	tr4, _ := http.NewRequest("PUT", "/test/test1/param1/param2", nil)
 	tr6, _ := http.NewRequest("POST", "/testPrefix/", nil)
 	tr7, _ := http.NewRequest("OPTIONS", "/testPrefix/", nil)
+
+	tr8, _ := http.NewRequest("GET", "/", nil)
+	tr9, _ := http.NewRequest("GET", "/p1", nil)
 	// var prt []Route
 	// prt = append(prt, &rt)
 	// rts[rt.path] = &prt
@@ -264,9 +345,12 @@ func TestReqRouter_ServeHTTP(t *testing.T) {
 		r *http.Request
 	}
 	tests := []struct {
-		name   string
-		fields fields
-		args   args
+		name       string
+		fields     fields
+		args       args
+		wantCode   int
+		wantW      *httptest.ResponseRecorder
+		wantVarLen int
 	}{
 		// TODO: Add test cases.
 		{
@@ -278,6 +362,9 @@ func TestReqRouter_ServeHTTP(t *testing.T) {
 				w: tw,
 				r: tr,
 			},
+			wantW:      tw,
+			wantCode:   http.StatusOK,
+			wantVarLen: 0,
 		},
 		{
 			name: "test 2 404",
@@ -288,6 +375,9 @@ func TestReqRouter_ServeHTTP(t *testing.T) {
 				w: tw2,
 				r: tr2,
 			},
+			wantW:      tw2,
+			wantCode:   http.StatusNotFound,
+			wantVarLen: 0,
 		},
 		{
 			name: "test 3 405",
@@ -298,16 +388,22 @@ func TestReqRouter_ServeHTTP(t *testing.T) {
 				w: tw3,
 				r: tr3,
 			},
+			wantW:      tw3,
+			wantCode:   http.StatusMethodNotAllowed,
+			wantVarLen: 0,
 		},
 		{
 			name: "test 4 405",
 			fields: fields{
-				namedRoutes: rts,
+				namedRoutes: rts2,
 			},
 			args: args{
 				w: tw4,
 				r: tr4,
 			},
+			wantW:      tw4,
+			wantCode:   http.StatusMethodNotAllowed,
+			wantVarLen: 0,
 		},
 		{
 			name: "test 5",
@@ -318,6 +414,9 @@ func TestReqRouter_ServeHTTP(t *testing.T) {
 				w: tw5,
 				r: tr22,
 			},
+			wantW:      tw5,
+			wantCode:   http.StatusOK,
+			wantVarLen: 2,
 		},
 		{
 			name: "test 6 prefix",
@@ -328,6 +427,9 @@ func TestReqRouter_ServeHTTP(t *testing.T) {
 				w: tw6,
 				r: tr6,
 			},
+			wantW:      tw6,
+			wantCode:   http.StatusOK,
+			wantVarLen: 0,
 		},
 		{
 			name: "cors test",
@@ -335,6 +437,35 @@ func TestReqRouter_ServeHTTP(t *testing.T) {
 				w: tw7,
 				r: tr7,
 			},
+			wantW:      tw7,
+			wantCode:   http.StatusOK,
+			wantVarLen: 0,
+		},
+		{
+			name: "test 8",
+			fields: fields{
+				namedRoutes: rts8,
+			},
+			args: args{
+				w: tw8,
+				r: tr8,
+			},
+			wantW:      tw8,
+			wantCode:   http.StatusOK,
+			wantVarLen: 0,
+		},
+		{
+			name: "test 9",
+			fields: fields{
+				namedRoutes: rts8,
+			},
+			args: args{
+				w: tw9,
+				r: tr9,
+			},
+			wantW:      tw9,
+			wantCode:   http.StatusOK,
+			wantVarLen: 1,
 		},
 	}
 	for _, tt := range tests {
@@ -345,27 +476,31 @@ func TestReqRouter_ServeHTTP(t *testing.T) {
 				corsEnabled:  true,
 			}
 			tr.ServeHTTP(tt.args.w, tt.args.r)
-			if tt.name == "test 1" && tw.Code != http.StatusOK {
+			//vs := Vars(tt.args.r)
+			if tt.wantW.Code != tt.wantCode || len(fvars) != tt.wantVarLen {
 				t.Fail()
 			}
-			if tt.name == "test 2 404" && tw2.Code != http.StatusNotFound {
-				t.Fail()
-			}
-			if tt.name == "test 3 405" && tw3.Code != http.StatusMethodNotAllowed {
-				t.Fail()
-			}
-			if tt.name == "test 4 405" && tw3.Code != http.StatusMethodNotAllowed {
-				t.Fail()
-			}
-			if tt.name == "test 5" && tw5.Code != http.StatusOK {
-				t.Fail()
-			}
-			if tt.name == "test 6 prefix" && tw6.Code != http.StatusOK {
-				t.Fail()
-			}
-			if tt.name == "cors test" && tw7.Code != http.StatusOK {
-				t.Fail()
-			}
+			// if tt.name == "test 1" && tw.Code != http.StatusOK {
+			// 	t.Fail()
+			// }
+			// if tt.name == "test 2 404" && tw2.Code != http.StatusNotFound {
+			// 	t.Fail()
+			// }
+			// if tt.name == "test 3 405" && tw3.Code != http.StatusMethodNotAllowed {
+			// 	t.Fail()
+			// }
+			// if tt.name == "test 4 405" && tw3.Code != http.StatusMethodNotAllowed {
+			// 	t.Fail()
+			// }
+			// if tt.name == "test 5" && tw5.Code != http.StatusOK {
+			// 	t.Fail()
+			// }
+			// if tt.name == "test 6 prefix" && tw6.Code != http.StatusOK {
+			// 	t.Fail()
+			// }
+			// if tt.name == "cors test" && tw7.Code != http.StatusOK {
+			// 	t.Fail()
+			// }
 		})
 	}
 }

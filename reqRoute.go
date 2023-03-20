@@ -178,7 +178,7 @@ func (t *ReqRoute) chechCurlyPlacement(p string) bool {
 	var lastOc int = 0
 	var lastCc int = 0
 	for i, c := range p {
-		if c == oc && i == lastOc+1 {
+		if c == oc && i == lastOc+1 && lastOc != 0 {
 			t.printError(p, "Route can not have {{")
 			rtn = false
 			break

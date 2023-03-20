@@ -183,17 +183,35 @@ func (t *ReqRouter) findRouteAndVars(path string) (Route, *[]string) {
 	var rnt Route
 	sp := strings.Split(path, "/")
 	var vars []string
-	var vcnt = len(sp) - 2
+	// var vcnt = len(sp) - 2
+	var vl int
+	if len(sp) == 2 && sp[1] == "" {
+		vl = len(sp) - 2
+	} else {
+		vl = len(sp) - 1
+	}
+	var vcnt = vl
 	//log.Println("sp:", sp)
 	var found = false
 	var searchPath = ""
 	for i, p := range sp {
-		if i == 0 {
-			continue
-		} else if found {
+		//if i == 0 {
+		//continue
+		if found {
 			break
 		}
-		searchPath += "/" + p
+		// if i == 0 {
+		// 	continue
+		// } else if found {
+		// 	break
+		// }
+		// searchPath += "/" + p
+		if searchPath == "/" {
+			searchPath += p
+		} else {
+			searchPath += "/" + p
+		}
+		// searchPath += "/" + p
 		rts := t.namedRoutes[searchPath]
 		if rts != nil {
 			for _, rt := range *rts {
@@ -201,6 +219,9 @@ func (t *ReqRouter) findRouteAndVars(path string) (Route, *[]string) {
 					rnt = rt
 					found = true
 					vars = sp[i+1:]
+					if len(vars) == 1 && vars[0] == "" {
+						vars = []string{}
+					}
 					break
 				}
 			}
