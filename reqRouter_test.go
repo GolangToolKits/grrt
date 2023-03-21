@@ -280,6 +280,7 @@ func TestReqRouter_ServeHTTP(t *testing.T) {
 	rt8.path = "/"
 	rt8.handler = hdl
 	rt8.methods = &[]string{"GET"}
+	
 	var rts8 = make(map[string]*[]Route)
 
 	var prt8 []Route
@@ -299,6 +300,32 @@ func TestReqRouter_ServeHTTP(t *testing.T) {
 	// var prt8 []Route
 	// prt8 = append(prt8, &rt8)
 	// rts8[rt8.path] = &prt8
+
+	var rt10 ReqRoute
+	rt10.active = true
+	rt10.pathVarsUsed = true
+	rt10.path = "/product"
+	rt10.handler = hdl
+	rt10.methods = &[]string{"GET"}
+	rt10.pathVarNames = &[]string{"id", "sku"}
+
+	var rt10b ReqRoute
+	rt10b.active = true
+	rt10b.pathVarsUsed = false
+	rt10b.path = "/"
+	rt10b.handler = hdl
+	rt10b.methods = &[]string{"GET"}
+
+	var rts10 = make(map[string]*[]Route)
+
+	var prt10 []Route
+	prt10 = append(prt10, &rt10)
+
+	rts10[rt10.path] = &prt10
+
+	var prt10b []Route
+	prt10b = append(prt10b, &rt10b)
+	rts10[rt10b.path] = &prt10b
 
 	var prrt ReqRoute
 	prrt.active = true
@@ -321,6 +348,7 @@ func TestReqRouter_ServeHTTP(t *testing.T) {
 	tw7 := httptest.NewRecorder()
 	tw8 := httptest.NewRecorder()
 	tw9 := httptest.NewRecorder()
+	tw10 := httptest.NewRecorder()
 
 	tr, _ := http.NewRequest("POST", "/test/test1", nil)
 	tr22, _ := http.NewRequest("GET", "/test/test1/p1/p2", nil)
@@ -332,6 +360,7 @@ func TestReqRouter_ServeHTTP(t *testing.T) {
 
 	tr8, _ := http.NewRequest("GET", "/", nil)
 	tr9, _ := http.NewRequest("GET", "/p1", nil)
+	tr10, _ := http.NewRequest("GET", "/product/p1/p2", nil)
 	// var prt []Route
 	// prt = append(prt, &rt)
 	// rts[rt.path] = &prt
@@ -466,6 +495,19 @@ func TestReqRouter_ServeHTTP(t *testing.T) {
 			wantW:      tw9,
 			wantCode:   http.StatusOK,
 			wantVarLen: 1,
+		},
+		{
+			name: "test 10",
+			fields: fields{
+				namedRoutes: rts10,
+			},
+			args: args{
+				w: tw10,
+				r: tr10,
+			},
+			wantW:      tw10,
+			wantCode:   http.StatusOK,
+			wantVarLen: 2,
 		},
 	}
 	for _, tt := range tests {

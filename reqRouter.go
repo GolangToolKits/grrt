@@ -41,15 +41,20 @@ func (t *ReqRouter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		t.handleCors(w)
 	} else {
 		path := r.URL.Path
-		var rt = t.findPrefix(path)
-		if rt == nil {
-			frt, fvars := t.findRouteAndVars(path)
-			rt = frt
-			if len(*fvars) > 0 {
-				r = t.requestWithVars(r, rt.GetVarNames(), fvars)
-				// rt = frt
-			}
+		//  var rt = t.findPrefix(path)
+		var rt Route
+		// if rt == nil {
+		frt, fvars := t.findRouteAndVars(path)
+		rt = frt
+		if len(*fvars) > 0 {
+			r = t.requestWithVars(r, rt.GetVarNames(), fvars)
+			// rt = frt
 		}
+		// }
+		if rt == nil {
+			rt = t.findPrefix(path)
+		}
+		// rt = t.findPrefix(path)
 		if rt == nil || !rt.IsActive() {
 			w.WriteHeader(http.StatusNotFound)
 		} else if !rt.IsMethodAllowed(r.Method) {
@@ -223,6 +228,8 @@ func (t *ReqRouter) findRouteAndVars(path string) (Route, *[]string) {
 						vars = []string{}
 					}
 					break
+				} else if len(*rts) == 1 && rt.GetPath() == "/" && !rt.IsPathVarsUsed() {
+					vcnt--
 				}
 			}
 		} else {
