@@ -44,15 +44,26 @@ func (t *ReqRouter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		//  var rt = t.findPrefix(path)
 		var rt Route
 		// if rt == nil {
-		frt, fvars := t.findRouteAndVars(path)
-		rt = frt
-		if len(*fvars) > 0 {
-			r = t.requestWithVars(r, rt.GetVarNames(), fvars)
-			// rt = frt
+		sfile := t.isStaticFile(path)
+		if !sfile {
+			frt, fvars := t.findRouteAndVars(path)
+			rt = frt
+			if rt != nil && len(*fvars) > 0 {
+				r = t.requestWithVars(r, rt.GetVarNames(), fvars)
+				// rt = frt
+			}
 		}
+		// frt, fvars := t.findRouteAndVars(path)
+		// rt = frt
+		// if rt != nil && len(*fvars) > 0 {
+		// 	r = t.requestWithVars(r, rt.GetVarNames(), fvars)
+		// 	// rt = frt
 		// }
-		if rt == nil {
+		// }
+		if rt == nil && !sfile {
 			rt = t.findPrefix(path)
+		} else if rt == nil && sfile {
+			rt = t.findFilePrefix(path)
 		}
 		// rt = t.findPrefix(path)
 		if rt == nil || !rt.IsActive() {
@@ -184,56 +195,118 @@ func (t *ReqRouter) findPrefix(px string) Route {
 	return rtn
 }
 
+func (t *ReqRouter) findFilePrefix(path string) Route {
+	var rtn Route
+	sp := strings.Split(path, "/")
+	if len(sp) > 1 {
+		rtn = t.prefixRoutes[sp[1]]
+		if rtn == nil {
+			rtn = t.prefixRoutes["/"]
+		}
+	}
+	return rtn
+}
+
+// func (t *ReqRouter) findRouteAndVars(path string) (Route, *[]string) {
+// 	var rnt Route
+// 	sp := strings.Split(path, "/")
+// 	var vars []string
+// 	// var vcnt = len(sp) - 2
+// 	var vl int
+// 	if len(sp) == 2 && sp[1] == "" {
+// 		vl = len(sp) - 2
+// 	} else {
+// 		vl = len(sp) - 1
+// 	}
+// 	var vcnt = vl
+// 	//log.Println("sp:", sp)
+// 	var found = false
+// 	var searchPath = ""
+// 	for i, p := range sp {
+// 		//if i == 0 {
+// 		//continue
+// 		if found {
+// 			break
+// 		}
+// 		// if i == 0 {
+// 		// 	continue
+// 		// } else if found {
+// 		// 	break
+// 		// }
+// 		// searchPath += "/" + p
+// 		if searchPath == "/" {
+// 			searchPath += p
+// 		} else {
+// 			searchPath += "/" + p
+// 		}
+// 		// searchPath += "/" + p
+// 		rts := t.namedRoutes[searchPath]
+// 		if rts != nil {
+// 			var baser = true
+// 			for _, rt := range *rts {
+// 				if rt.GetPath() != "/" {
+// 					baser = false
+// 					break
+// 				}
+// 			}
+
+// 			for _, rt := range *rts {
+// 				if rt.GetPathVarsCount() == vcnt {
+// 					rnt = rt
+// 					found = true
+// 					vars = sp[i+1:]
+// 					if len(vars) == 1 && vars[0] == "" {
+// 						vars = []string{}
+// 					}
+// 					break
+// 					// } else if rt.GetPath() == "/" && !rt.IsPathVarsUsed() {
+// 					// } else if len(*rts) == 1 && rt.GetPath() == "/" && !rt.IsPathVarsUsed() {
+// 				} else if baser {
+// 					vcnt--
+// 				}
+// 			}
+// 		} else {
+// 			vcnt--
+// 		}
+// 	}
+// 	return rnt, &vars
+// }
+
 func (t *ReqRouter) findRouteAndVars(path string) (Route, *[]string) {
 	var rnt Route
 	sp := strings.Split(path, "/")
+	plen := len(sp)
 	var vars []string
-	// var vcnt = len(sp) - 2
-	var vl int
-	if len(sp) == 2 && sp[1] == "" {
-		vl = len(sp) - 2
-	} else {
-		vl = len(sp) - 1
-	}
-	var vcnt = vl
-	//log.Println("sp:", sp)
+	var searchPath = path
 	var found = false
-	var searchPath = ""
-	for i, p := range sp {
-		//if i == 0 {
-		//continue
+	for range sp {
+		//fmt.Println(i)
 		if found {
 			break
 		}
-		// if i == 0 {
-		// 	continue
-		// } else if found {
-		// 	break
-		// }
-		// searchPath += "/" + p
-		if searchPath == "/" {
-			searchPath += p
-		} else {
-			searchPath += "/" + p
-		}
-		// searchPath += "/" + p
 		rts := t.namedRoutes[searchPath]
 		if rts != nil {
 			for _, rt := range *rts {
-				if rt.GetPathVarsCount() == vcnt {
-					rnt = rt
-					found = true
-					vars = sp[i+1:]
-					if len(vars) == 1 && vars[0] == "" {
-						vars = []string{}
+				if rt.IsPathVarsUsed() {
+					vars = sp[plen:]
+					if len(vars) == rt.GetPathVarsCount() {
+						found = true
+						rnt = rt
+						break
 					}
+				} else if rt.GetPath() == path {
+					found = true
+					rnt = rt
 					break
-				} else if len(*rts) == 1 && rt.GetPath() == "/" && !rt.IsPathVarsUsed() {
-					vcnt--
 				}
 			}
 		} else {
-			vcnt--
+			plen--
+			si := strings.LastIndex(searchPath, "/")
+			if si == 0 {
+				si++
+			}
+			searchPath = searchPath[:si]
 		}
 	}
 	return rnt, &vars
@@ -248,4 +321,16 @@ func (t *ReqRouter) requestWithVars(r *http.Request, pVarNames, pvars *[]string)
 	}
 	ctx := context.WithValue(r.Context(), varsKey, vars)
 	return r.WithContext(ctx)
+}
+
+func (t *ReqRouter) isStaticFile(path string) bool {
+	var rtn bool
+	var ind = strings.LastIndex(path, ".")
+	if ind > 0 {
+		disp := len(path) - (ind + 1)
+		if disp < 4 {
+			rtn = true
+		}
+	}
+	return rtn
 }

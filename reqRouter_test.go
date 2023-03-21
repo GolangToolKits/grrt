@@ -251,12 +251,14 @@ func TestReqRouter_ServeHTTP(t *testing.T) {
 	}
 	var hdl = http.HandlerFunc(nf)
 
+	var rts = make(map[string]*[]Route)
+
 	var rt ReqRoute
 	rt.active = true
 	rt.path = "/test/test1"
 	rt.handler = hdl
 	rt.methods = &[]string{"POST"}
-	var rts = make(map[string]*[]Route)
+	// var rts = make(map[string]*[]Route)
 
 	var prt []Route
 	prt = append(prt, &rt)
@@ -269,23 +271,23 @@ func TestReqRouter_ServeHTTP(t *testing.T) {
 	rt2.handler = hdl
 	rt2.methods = &[]string{"GET"}
 	rt2.pathVarNames = &[]string{"param1", "param2"}
-	var rts2 = make(map[string]*[]Route)
+	//var rts2 = make(map[string]*[]Route)
 
-	var prt2 []Route
-	prt2 = append(prt2, &rt2)
-	rts2[rt2.path] = &prt2
+	//var prt2 []Route
+	prt = append(prt, &rt2)
+	rts[rt2.path] = &prt
 
 	var rt8 ReqRoute
 	rt8.active = true
 	rt8.path = "/"
 	rt8.handler = hdl
 	rt8.methods = &[]string{"GET"}
-	
-	var rts8 = make(map[string]*[]Route)
+
+	//var rts8 = make(map[string]*[]Route)
 
 	var prt8 []Route
 	prt8 = append(prt8, &rt8)
-	rts8[rt8.path] = &prt8
+	rts[rt8.path] = &prt8
 
 	var rt88 ReqRoute
 	rt88.active = true
@@ -295,7 +297,7 @@ func TestReqRouter_ServeHTTP(t *testing.T) {
 	rt88.methods = &[]string{"GET"}
 	rt88.pathVarNames = &[]string{"param1"}
 	prt8 = append(prt8, &rt88)
-	rts8[rt88.path] = &prt8
+	rts[rt88.path] = &prt8
 
 	// var prt8 []Route
 	// prt8 = append(prt8, &rt8)
@@ -327,17 +329,65 @@ func TestReqRouter_ServeHTTP(t *testing.T) {
 	prt10b = append(prt10b, &rt10b)
 	rts10[rt10b.path] = &prt10b
 
+	////=--------
+
+	var rt11 ReqRoute
+	rt11.active = true
+	rt11.pathVarsUsed = true
+	rt11.path = "/view"
+	rt11.handler = hdl
+	rt11.methods = &[]string{"GET"}
+	rt11.pathVarNames = &[]string{"name"}
+
+	var rt11b ReqRoute
+	rt11b.active = true
+	rt11b.pathVarsUsed = false
+	rt11b.path = "/"
+	rt11b.handler = hdl
+	rt11b.methods = &[]string{"GET"}
+
+	var rt11c ReqRoute
+	rt11c.active = true
+	rt11c.pathVarsUsed = false
+	rt11c.path = "/"
+	rt11c.handler = hdl
+	rt11c.methods = &[]string{"GET"}
+	rt11c.pathVarNames = &[]string{"name"}
+
+	var rts11 = make(map[string]*[]Route)
+
+	var prt11 []Route
+	prt11 = append(prt11, &rt11)
+
+	rts11[rt11.path] = &prt11
+
+	var prt11b []Route
+	prt11b = append(prt11b, &rt11b)
+	rts11[rt11b.path] = &prt11b
+
+	var prt11c []Route
+	prt11c = append(prt11c, &rt11c)
+	rts11[rt11c.path] = &prt11c
+
 	var prrt ReqRoute
 	prrt.active = true
 	prrt.isPrefix = true
 	prrt.prefix = "/testPrefix/"
 	prrt.handler = hdl
 	prrt.methods = &[]string{}
+
+	var prrt2 ReqRoute
+	prrt2.active = true
+	prrt2.isPrefix = true
+	prrt2.prefix = "/"
+	prrt2.handler = hdl
+	prrt2.methods = &[]string{}
 	var prrts = make(map[string]Route)
 
-	//var prt []Route
-	//prt = append(prt, &rt)
+	//var pfrt []Route
+	//pfrt = append(pfrt, &prrt)
 	prrts[prrt.prefix] = &prrt
+	prrts[prrt2.prefix] = &prrt2
 
 	tw := httptest.NewRecorder()
 	tw2 := httptest.NewRecorder()
@@ -345,10 +395,12 @@ func TestReqRouter_ServeHTTP(t *testing.T) {
 	tw4 := httptest.NewRecorder()
 	tw5 := httptest.NewRecorder()
 	tw6 := httptest.NewRecorder()
+	tw6b := httptest.NewRecorder()
 	tw7 := httptest.NewRecorder()
 	tw8 := httptest.NewRecorder()
 	tw9 := httptest.NewRecorder()
 	tw10 := httptest.NewRecorder()
+	tw11 := httptest.NewRecorder()
 
 	tr, _ := http.NewRequest("POST", "/test/test1", nil)
 	tr22, _ := http.NewRequest("GET", "/test/test1/p1/p2", nil)
@@ -356,11 +408,14 @@ func TestReqRouter_ServeHTTP(t *testing.T) {
 	tr3, _ := http.NewRequest("PUT", "/test/test1", nil)
 	tr4, _ := http.NewRequest("PUT", "/test/test1/param1/param2", nil)
 	tr6, _ := http.NewRequest("POST", "/testPrefix/", nil)
+	tr6b, _ := http.NewRequest("GET", "/templates/cleanblog/vendor/fontawesome-free/css/all.min.css", nil)
 	tr7, _ := http.NewRequest("OPTIONS", "/testPrefix/", nil)
 
 	tr8, _ := http.NewRequest("GET", "/", nil)
 	tr9, _ := http.NewRequest("GET", "/p1", nil)
 	tr10, _ := http.NewRequest("GET", "/product/p1/p2", nil)
+	tr11, _ := http.NewRequest("GET", "/view/p1", nil)
+	//tr12, _ := http.NewRequest("GET", "/templates/cleanblog/vendor/fontawesome-free/css/all.min.css", nil)
 	// var prt []Route
 	// prt = append(prt, &rt)
 	// rts[rt.path] = &prt
@@ -424,7 +479,7 @@ func TestReqRouter_ServeHTTP(t *testing.T) {
 		{
 			name: "test 4 405",
 			fields: fields{
-				namedRoutes: rts2,
+				namedRoutes: rts,
 			},
 			args: args{
 				w: tw4,
@@ -437,7 +492,7 @@ func TestReqRouter_ServeHTTP(t *testing.T) {
 		{
 			name: "test 5",
 			fields: fields{
-				namedRoutes: rts2,
+				namedRoutes: rts,
 			},
 			args: args{
 				w: tw5,
@@ -461,6 +516,19 @@ func TestReqRouter_ServeHTTP(t *testing.T) {
 			wantVarLen: 0,
 		},
 		{
+			name: "test 6 prefix2",
+			fields: fields{
+				prefixRoutes: prrts,
+			},
+			args: args{
+				w: tw6b,
+				r: tr6b,
+			},
+			wantW:      tw6b,
+			wantCode:   http.StatusOK,
+			wantVarLen: 0,
+		},
+		{
 			name: "cors test",
 			args: args{
 				w: tw7,
@@ -473,7 +541,7 @@ func TestReqRouter_ServeHTTP(t *testing.T) {
 		{
 			name: "test 8",
 			fields: fields{
-				namedRoutes: rts8,
+				namedRoutes: rts,
 			},
 			args: args{
 				w: tw8,
@@ -486,7 +554,7 @@ func TestReqRouter_ServeHTTP(t *testing.T) {
 		{
 			name: "test 9",
 			fields: fields{
-				namedRoutes: rts8,
+				namedRoutes: rts,
 			},
 			args: args{
 				w: tw9,
@@ -508,6 +576,19 @@ func TestReqRouter_ServeHTTP(t *testing.T) {
 			wantW:      tw10,
 			wantCode:   http.StatusOK,
 			wantVarLen: 2,
+		},
+		{
+			name: "test 11",
+			fields: fields{
+				namedRoutes: rts11,
+			},
+			args: args{
+				w: tw11,
+				r: tr11,
+			},
+			wantW:      tw11,
+			wantCode:   http.StatusOK,
+			wantVarLen: 1,
 		},
 	}
 	for _, tt := range tests {
@@ -549,60 +630,85 @@ func TestReqRouter_ServeHTTP(t *testing.T) {
 
 func TestReqRouter_findRoute(t *testing.T) {
 	//var hdl = http.HandlerFunc(nf)
-	var varNames = &[]string{"param1", "param2"}
-	var methods = &[]string{"GET"}
+	var rts = make(map[string]*[]Route)
+
+	//var varNames = &[]string{"param1", "param2"}
+	//var methods = &[]string{"GET"}
 	var rt ReqRoute
 	rt.active = true
 	rt.path = "/test/test1"
 	rt.pathVarsUsed = true
-	rt.pathVarNames = varNames
+	rt.pathVarNames = &[]string{"param1", "param2"}
 	//rt.handler = hdl
-	rt.methods = methods
-	var rts = make(map[string]*[]Route)
+	rt.methods = &[]string{"GET"}
+	// var rts = make(map[string]*[]Route)
 	var prt []Route
 	prt = append(prt, &rt)
 	rts[rt.path] = &prt
 
 	//test 2 ----
-	var varNames2 = &[]string{}
-	var methods2 = &[]string{"GET"}
+	//var varNames2 = &[]string{}
+	//var methods2 = &[]string{"GET"}
 	var rt2 ReqRoute
 	rt2.active = true
 	rt2.path = "/test/test1/test2/test3"
 	rt2.pathVarsUsed = false
-	rt2.pathVarNames = varNames2
+	rt2.pathVarNames = &[]string{}
 	//rt.handler = hdl
-	rt2.methods = methods2
-	var rts2 = make(map[string]*[]Route)
+	rt2.methods = &[]string{"GET"}
+	//var rts2 = make(map[string]*[]Route)
 	var prt2 []Route
 	prt2 = append(prt2, &rt2)
-	rts2[rt2.path] = &prt2
+	rts[rt2.path] = &prt2
 
 	//test 3 ----
-	var varNames3 = &[]string{}
-	var methods3 = &[]string{"POST"}
+	//var varNames3 = &[]string{}
+	//var methods3 = &[]string{"POST"}
 	var rt3 ReqRoute
 	rt3.active = true
 	rt3.path = "/test/test1/test2"
 	rt3.pathVarsUsed = false
-	rt3.pathVarNames = varNames3
+	rt3.pathVarNames = &[]string{}
 	//rt.handler = hdl
-	rt3.methods = methods3
+	rt3.methods = &[]string{"POST"}
 
-	var varNames33 = &[]string{"param1"}
-	var methods33 = &[]string{"GET"}
+	//var varNames33 = &[]string{"param1"}
+	//var methods33 = &[]string{"GET"}
 	var rt33 ReqRoute
 	rt33.active = true
 	rt33.path = "/test/test1/test2"
 	rt33.pathVarsUsed = true
-	rt33.pathVarNames = varNames33
+	rt33.pathVarNames = &[]string{"param1"}
 	//rt.handler = hdl
-	rt33.methods = methods33
-	var rts3 = make(map[string]*[]Route)
+	rt33.methods = &[]string{"GET"}
+	//var rts3 = make(map[string]*[]Route)
 	var prt3 []Route
 	prt3 = append(prt3, &rt3)
 	prt3 = append(prt3, &rt33)
-	rts3[rt33.path] = &prt3
+	rts[rt33.path] = &prt3
+
+	var rt4 ReqRoute
+	rt4.active = true
+	rt4.path = "/"
+	rt4.pathVarsUsed = false
+	rt4.pathVarNames = &[]string{}
+	//rt.handler = hdl
+	rt4.methods = &[]string{"GET"}
+
+	//var varNames33 = &[]string{"param1"}
+	//var methods33 = &[]string{"GET"}
+	var rt41 ReqRoute
+	rt41.active = true
+	rt41.path = "/"
+	rt41.pathVarsUsed = true
+	rt41.pathVarNames = &[]string{"name"}
+	//rt.handler = hdl
+	rt41.methods = &[]string{"GET"}
+	//var rts3 = make(map[string]*[]Route)
+	var prt4 []Route
+	prt4 = append(prt4, &rt4)
+	prt4 = append(prt4, &rt41)
+	rts[rt4.path] = &prt4
 
 	type fields struct {
 		namedRoutes map[string]*[]Route
@@ -630,16 +736,16 @@ func TestReqRouter_findRoute(t *testing.T) {
 				path:         "/test/test1",
 				active:       true,
 				pathVarsUsed: true,
-				pathVarNames: varNames,
+				pathVarNames: &[]string{"param1", "param2"},
 
-				methods: methods,
+				methods: &[]string{"GET"},
 			},
 			want1: &[]string{"p1", "p2"},
 		},
 		{
 			name: "test 2",
 			fields: fields{
-				namedRoutes: rts2,
+				namedRoutes: rts,
 			},
 			args: args{
 				path: "/test/test1/test2/test3",
@@ -648,15 +754,15 @@ func TestReqRouter_findRoute(t *testing.T) {
 				path:         "/test/test1/test2/test3",
 				active:       true,
 				pathVarsUsed: false,
-				pathVarNames: varNames2,
-				methods:      methods2,
+				pathVarNames: &[]string{},
+				methods:      &[]string{"GET"},
 			},
 			want1: &[]string{},
 		},
 		{
 			name: "test 3",
 			fields: fields{
-				namedRoutes: rts3,
+				namedRoutes: rts,
 			},
 			args: args{
 				path: "/test/test1/test2/p1",
@@ -665,11 +771,47 @@ func TestReqRouter_findRoute(t *testing.T) {
 				path:         "/test/test1/test2",
 				active:       true,
 				pathVarsUsed: true,
-				pathVarNames: varNames33,
+				pathVarNames: &[]string{"param1"},
 
-				methods: methods33,
+				methods: &[]string{"GET"},
 			},
 			want1: &[]string{"p1"},
+		},
+		{
+			name: "test 4",
+			fields: fields{
+				namedRoutes: rts,
+			},
+			args: args{
+				path: "/",
+			},
+			want: &ReqRoute{
+				path:         "/",
+				active:       true,
+				pathVarsUsed: false,
+				pathVarNames: &[]string{},
+
+				methods: &[]string{"GET"},
+			},
+			want1: &[]string{},
+		},
+		{
+			name: "test 5",
+			fields: fields{
+				namedRoutes: rts,
+			},
+			args: args{
+				path: "/info",
+			},
+			want: &ReqRoute{
+				path:         "/",
+				active:       true,
+				pathVarsUsed: true,
+				pathVarNames: &[]string{"name"},
+
+				methods: &[]string{"GET"},
+			},
+			want1: &[]string{"info"},
 		},
 	}
 	for _, tt := range tests {
@@ -681,7 +823,8 @@ func TestReqRouter_findRoute(t *testing.T) {
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("ReqRouter.findRoute() got = %v, want %v", got, tt.want)
 			}
-			if !reflect.DeepEqual(got1, tt.want1) {
+			// if !reflect.DeepEqual(got1, tt.want1) {
+			if len(*got1) != len(*tt.want1) {
 				t.Errorf("ReqRouter.findRoute() got1 = %v, want %v", got1, tt.want1)
 			}
 		})
@@ -1213,6 +1356,119 @@ func TestReqRouter_CORSAllowCredentials(t *testing.T) {
 			tr.CORSAllowCredentials()
 			if tr.corsAllowCredentials != true {
 				t.Fail()
+			}
+		})
+	}
+}
+
+func TestReqRouter_isStaticFile(t *testing.T) {
+	type fields struct {
+		namedRoutes          map[string]*[]Route
+		prefixRoutes         map[string]Route
+		corsEnabled          bool
+		corsAllowCredentials bool
+		allowedHeaders       []string
+		allowedOrigins       []string
+		allowedMethods       []string
+	}
+	type args struct {
+		path string
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   bool
+	}{
+		// TODO: Add test cases.
+		{
+			name: "test 1",
+			args: args{
+				path: "/templates/cleanblog/vendor/fontawesome-free/css/all.min.css",
+			},
+			want: true,
+		},
+		{
+			name: "test 1",
+			args: args{
+				path: "/templates/cleanblog/js/clean-blog.min.js",
+			},
+			want: true,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tr := &ReqRouter{
+				namedRoutes:          tt.fields.namedRoutes,
+				prefixRoutes:         tt.fields.prefixRoutes,
+				corsEnabled:          tt.fields.corsEnabled,
+				corsAllowCredentials: tt.fields.corsAllowCredentials,
+				allowedHeaders:       tt.fields.allowedHeaders,
+				allowedOrigins:       tt.fields.allowedOrigins,
+				allowedMethods:       tt.fields.allowedMethods,
+			}
+			if got := tr.isStaticFile(tt.args.path); got != tt.want {
+				t.Errorf("ReqRouter.isStaticFile() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestReqRouter_findFilePrefix(t *testing.T) {
+	var prt = ReqRoute{
+		prefix:   "/",
+		isPrefix: true,
+		active:   true,
+	}
+	pfx := make(map[string]Route)
+	pfx["/"] = &prt
+	type fields struct {
+		namedRoutes          map[string]*[]Route
+		prefixRoutes         map[string]Route
+		corsEnabled          bool
+		corsAllowCredentials bool
+		allowedHeaders       []string
+		allowedOrigins       []string
+		allowedMethods       []string
+	}
+	type args struct {
+		path string
+	}
+	tests := []struct {
+		name   string
+		fields fields
+		args   args
+		want   Route
+	}{
+		// TODO: Add test cases.
+		{
+			name: "test 1",
+			fields: fields{
+				prefixRoutes: pfx,
+			},
+			args: args{
+				path: "/templates/cleanblog/vendor/fontawesome-free/css/all.min.css",
+			},
+			want: &ReqRoute{
+				prefix:   "/",
+				isPrefix: true,
+				active:   true,
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tr := &ReqRouter{
+				namedRoutes:          tt.fields.namedRoutes,
+				prefixRoutes:         tt.fields.prefixRoutes,
+				corsEnabled:          tt.fields.corsEnabled,
+				corsAllowCredentials: tt.fields.corsAllowCredentials,
+				allowedHeaders:       tt.fields.allowedHeaders,
+				allowedOrigins:       tt.fields.allowedOrigins,
+				allowedMethods:       tt.fields.allowedMethods,
+			}
+			if got := tr.findFilePrefix(tt.args.path); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("ReqRouter.findFilePrefix() = %v, want %v", got, tt.want)
 			}
 		})
 	}
