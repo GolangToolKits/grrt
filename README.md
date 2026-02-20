@@ -6,6 +6,7 @@ It has built-in CORS and Method based routing.
 
 ## Replaces gorilla/mux with one line of code
 
+
 [![Go Report Card](https://goreportcard.com/badge/github.com/GolangToolKits/grrt)](https://goreportcard.com/report/github.com/GolangToolKits/grrt)
 
 
